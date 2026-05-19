@@ -1,7 +1,9 @@
 "use client";
 
-import { AppShell, Button, Container, Group } from "@mantine/core";
+import { Anchor, AppShell, Box, Button, Container, Group, Stack } from "@mantine/core";
 import type { PropsWithChildren } from "react";
+import { FaFacebook, FaInstagram } from "react-icons/fa";
+
 import { PageLogo } from "@/components/layout/PageLogo";
 
 const HEADER_HEIGHT = 90;
@@ -38,9 +40,32 @@ export function PageLayout({ children }: PropsWithChildren) {
       </AppShell.Header>
 
       <AppShell.Main>
-        <Container size={BODY_MAX_WIDTH} px="md">
+        <Container size={BODY_MAX_WIDTH} px="md" style={{ minHeight: "calc(100vh - 250px)" }}>
           {children}
         </Container>
+
+        <Box component="footer" bg="white" style={{ borderTop: "1px solid #E5E5E5" }} py="xl" mt="xl">
+          <Container size={BODY_MAX_WIDTH}>
+            <Stack align="center" gap="md">
+              <Group gap="lg">
+                <Anchor href="#" c="#8A8A8A" fw={500} underline="never">
+                  Privacy
+                </Anchor>
+                <Anchor href="#" c="#8A8A8A" fw={500} underline="never">
+                  Terms
+                </Anchor>
+              </Group>
+              <Group gap="md">
+                <Anchor href="https://www.facebook.com/blogic" target="_blank" c="#575757">
+                  <FaFacebook size={24} />
+                </Anchor>
+                <Anchor href="https://www.instagram.com/blogic.cz/" target="_blank" c="#575757">
+                  <FaInstagram size={24} />
+                </Anchor>
+              </Group>
+            </Stack>
+          </Container>
+        </Box>
       </AppShell.Main>
     </AppShell>
   );
