@@ -117,30 +117,28 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
           </Stack>
 
           {/* Title & Price */}
-          <Group gap={12} align="flex-start" grow>
-            <TextInput
-              label="Název"
-              value={listing.title}
-              readOnly
-              radius={8}
-              styles={{
-                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
-                input: { borderColor: "#D5D5D5", fontSize: 14, background: "#FFF" },
-              }}
-            />
-            <NumberInput
-              label="Cena (Kč)"
-              value={listing.price ?? 0}
-              readOnly
-              radius={8}
-              description={listing.price === null || listing.price === 0 ? "Zadarmo" : undefined}
-              styles={{
-                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
-                input: { borderColor: "#D5D5D5", fontSize: 14, background: "#FFF" },
-                description: { color: "#1754D8", fontWeight: 500 },
-              }}
-            />
-          </Group>
+          <TextInput
+            label="Název"
+            value={listing.title}
+            readOnly
+            radius={8}
+            styles={{
+              label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+              input: { borderColor: "#D5D5D5", fontSize: 14, background: "#FFF" },
+            }}
+          />
+          <NumberInput
+            label="Cena (Kč)"
+            value={listing.price ?? 0}
+            readOnly
+            radius={8}
+            description={listing.price === null || listing.price === 0 ? "Zadarmo" : undefined}
+            styles={{
+              label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+              input: { borderColor: "#D5D5D5", fontSize: 14, background: "#FFF" },
+              description: { color: "#1754D8", fontWeight: 500 },
+            }}
+          />
 
           {/* Category */}
           <Select

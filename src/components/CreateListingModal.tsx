@@ -208,31 +208,29 @@ export function CreateListingModal({ opened, onClose }: Props) {
           </Stack>
 
           {/* Title & Price */}
-          <Group gap={12} align="flex-start" grow>
-            <TextInput
-              label="Název"
-              placeholder="Zadejte název inzerátu"
-              radius={8}
-              styles={{
-                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
-                input: { borderColor: "#D5D5D5", fontSize: 14 },
-              }}
-              {...form.getInputProps("title")}
-            />
-            <NumberInput
-              label="Cena (Kč)"
-              placeholder="0"
-              min={0}
-              radius={8}
-              description={form.values.price === 0 ? "Zadarmo" : undefined}
-              styles={{
-                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
-                input: { borderColor: "#D5D5D5", fontSize: 14 },
-                description: { color: "#1754D8", fontWeight: 500 },
-              }}
-              {...form.getInputProps("price")}
-            />
-          </Group>
+          <TextInput
+            label="Název"
+            placeholder="Zadejte název inzerátu"
+            radius={8}
+            styles={{
+              label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+              input: { borderColor: "#D5D5D5", fontSize: 14 },
+            }}
+            {...form.getInputProps("title")}
+          />
+          <NumberInput
+            label="Cena (Kč)"
+            placeholder="0"
+            min={0}
+            radius={8}
+            description={form.values.price === 0 ? "Zadarmo" : undefined}
+            styles={{
+              label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+              input: { borderColor: "#D5D5D5", fontSize: 14 },
+              description: { color: "#1754D8", fontWeight: 500 },
+            }}
+            {...form.getInputProps("price")}
+          />
 
           {/* Category */}
           <Select
