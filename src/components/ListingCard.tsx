@@ -34,7 +34,7 @@ export function ListingCard({ listing }: ListingCardProps) {
       <Card.Section>
         {listing.imageUrl ? (
           <div className="relative w-full h-48">
-            <Image src={listing.imageUrl} alt={listing.title} fill style={{ objectFit: "cover" }} />
+            <Image src={listing.imageUrl} alt={listing.title} fill unoptimized style={{ objectFit: "cover" }} />
           </div>
         ) : (
           <div className="w-full h-48 bg-[#333333] flex items-center justify-center">
