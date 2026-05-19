@@ -1,5 +1,5 @@
 {
-  "name": "blum-next-app-template",
+  "name": "Bazar",
   "version": "0.1.0",
   "private": true,
   "description": "Next.js App Router template used by Blogic University.",
@@ -9,7 +9,7 @@
     "url": "git+https://github.com/Marsiso/blum-next-app-template.git"
   },
   "license": "MIT",
-  "author": "Marek Olšák",
+  "author": "Radim Zavadil",
   "type": "module",
   "main": "index.js",
   "scripts": {
