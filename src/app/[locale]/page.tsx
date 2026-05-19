@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { CategoryGrid } from "../../components/CategoryGrid";
+import { db } from "../../db";
+import { listings } from "../../db/schemas";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
@@ -14,6 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page(_: PageProps<"/[locale]">) {
+  const allListings = await db.select().from(listings);
+  const listingsCount = allListings.length;
+
   return (
     <Container size="md" py={40}>
       <Stack align="center" gap={40}>
@@ -28,7 +35,7 @@ export default async function Page(_: PageProps<"/[locale]">) {
 
         <Group justify="center" gap={8}>
           <Text c="#505050" fw={500} size="xl">
-            10
+            {listingsCount}
           </Text>
           <Text c="#7B7B7B" fw={400} size="xl">
             inzerátů
