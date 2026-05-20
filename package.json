@@ -31,6 +31,7 @@
     "@mantine/hooks": "^9.1.1",
     "@mantine/modals": "^9.1.1",
     "@tanstack/react-query": "^5.100.9",
+    "better-auth": "^1.6.11",
     "better-sqlite3": "^12.9.0",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.14.0",

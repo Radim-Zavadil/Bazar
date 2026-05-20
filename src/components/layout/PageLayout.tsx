@@ -5,6 +5,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { Plus } from "lucide-react";
 import type { PropsWithChildren } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
+import { AuthNav } from "@/components/AuthNav";
 import { CreateListingModal } from "@/components/CreateListingModal";
 import { PageLogo } from "@/components/layout/PageLogo";
 
@@ -23,7 +24,8 @@ export function PageLayout({ children }: PropsWithChildren) {
             <Group h="100%" align="center" justify="space-between">
               <PageLogo />
               <Group gap="sm">
-                <Button
+                <AuthNav />
+                {/*<Button
                   variant="outline"
                   color="gray"
                   radius={9}
@@ -39,7 +41,7 @@ export function PageLayout({ children }: PropsWithChildren) {
 
                 <Button radius={9} h={36} px="md" fz="sm" fw={500} bg="#194AD1">
                   Začít prodávat
-                </Button>
+                </Button>*/}
 
                 <ActionIcon
                   id="btn-create-listing"
