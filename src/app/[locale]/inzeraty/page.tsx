@@ -1,11 +1,18 @@
 import { Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { eq } from "drizzle-orm";
 import { ListingCard } from "../../../components/ListingCard";
 import { db } from "../../../db";
 import { listings } from "../../../db/schemas";
 
 export const dynamic = "force-dynamic";
 
-export default async function ListingsPage() {
+type Props = {
+  searchParams: Promise<{ kategorie?: string }>;
+};
+
+export default async function ListingsPage({ searchParams }: Props) {
+  const { kategorie } = await searchParams;
+
   // Zkontrolujeme, zda jsou v databázi nějaké inzeráty
   let allListings = await db.select().from(listings);
 
@@ -63,18 +70,23 @@ export default async function ListingsPage() {
     allListings = await db.select().from(listings);
   }
 
+  // Filtrujeme podle kategorie, pokud je zadána
+  const filtered = kategorie ? await db.select().from(listings).where(eq(listings.category, kategorie)) : allListings;
+
   return (
     <Container size="lg" py={40}>
       <Stack gap="xl">
         <Stack gap="xs">
           <Title order={1} size="h2" c="#202020">
-            Aktuální inzeráty
+            {kategorie ? kategorie : "Aktuální inzeráty"}
           </Title>
-          <Text c="#6C6C6C">Prohlédněte si nejnovější věci v našem bazaru.</Text>
+          <Text c="#6C6C6C">
+            {kategorie ? `Inzeráty v kategorii „${kategorie}".` : "Prohlédněte si nejnovější věci v našem bazaru."}
+          </Text>
         </Stack>
 
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 3 }} spacing="lg">
-          {allListings.map((listing) => (
+          {filtered.map((listing) => (
             <ListingCard key={listing.id} listing={listing} />
           ))}
         </SimpleGrid>

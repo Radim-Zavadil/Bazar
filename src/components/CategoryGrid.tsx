@@ -3,12 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 const CATEGORIES = [
-  { title: "Všechno", image: "/filters/all.jpg" },
-  { title: "Oblečení", image: "/filters/clothes.jpg" },
-  { title: "Nábytek", image: "/filters/furniture.jpg" },
-  { title: "Dětské věci", image: "/filters/children.jpg" },
-  { title: "Elektronika", image: "/filters/electronics.jpg" },
-  { title: "Knihy", image: "/filters/books.jpg" },
+  { title: "Všechno", image: "/filters/all.jpg", href: "/inzeraty" },
+  { title: "Oblečení", image: "/filters/clothes.jpg", href: "/inzeraty?kategorie=Oblečení" },
+  { title: "Nábytek", image: "/filters/furniture.jpg", href: "/inzeraty?kategorie=Nábytek" },
+  { title: "Dětské věci", image: "/filters/children.jpg", href: "/inzeraty?kategorie=Dětské věci" },
+  { title: "Elektronika", image: "/filters/electronics.jpg", href: "/inzeraty?kategorie=Elektronika" },
+  { title: "Knihy", image: "/filters/books.jpg", href: "/inzeraty?kategorie=Knihy" },
 ];
 
 export function CategoryGrid() {
@@ -17,7 +17,7 @@ export function CategoryGrid() {
       {CATEGORIES.map((category) => (
         <Link
           key={category.title}
-          href="/inzeraty"
+          href={category.href}
           className="relative w-full h-48 rounded-[30px] overflow-hidden block"
         >
           <Image src={category.image} alt={category.title} fill style={{ objectFit: "cover" }} />
