@@ -74,7 +74,7 @@ export function AuthModal({ opened, mode, onClose }: AuthModalProps) {
   const inputStyles = {
     input: {
       border: "1px solid #969696",
-      borderRadius: "19px",
+      borderRadius: "10px",
       padding: "10px 14px",
     },
   };
@@ -124,7 +124,7 @@ export function AuthModal({ opened, mode, onClose }: AuthModalProps) {
                 fullWidth
                 style={{
                   background: "#1754D8",
-                  borderRadius: "20px",
+                  borderRadius: "10px",
                   fontWeight: 500,
                   marginTop: 4,
                 }}
@@ -163,7 +163,7 @@ export function AuthModal({ opened, mode, onClose }: AuthModalProps) {
                 loading={loading}
                 style={{
                   background: "#1754D8",
-                  borderRadius: "20px",
+                  borderRadius: "8px",
                   fontWeight: 500,
                   marginTop: 4,
                 }}
@@ -173,8 +173,8 @@ export function AuthModal({ opened, mode, onClose }: AuthModalProps) {
 
               <Button
                 variant="filled"
-                fullWidth
-                leftSection={<FiChevronLeft size={16} />}
+                size="xs"
+                leftSection={<FiChevronLeft size={13} />}
                 onClick={() => {
                   setError(null);
                   setStep("email");
@@ -182,8 +182,9 @@ export function AuthModal({ opened, mode, onClose }: AuthModalProps) {
                 style={{
                   background: "#F0F0F0",
                   color: "#000",
-                  borderRadius: "15px",
+                  borderRadius: "7px",
                   fontWeight: 500,
+                  alignSelf: "center",
                 }}
               >
                 Zpět

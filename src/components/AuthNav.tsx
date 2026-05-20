@@ -20,17 +20,21 @@ export function AuthNav() {
   return (
     <>
       <Group gap="sm">
-        <Button variant="subtle" color="dark" onClick={() => setModal("login")} style={{ fontWeight: 500 }}>
+        <Button
+          variant="outline"
+          color="gray"
+          radius={9}
+          h={36}
+          px="md"
+          fz="sm"
+          fw={500}
+          c="black"
+          styles={{ root: { borderColor: "#E9E9E9" } }}
+          onClick={() => setModal("login")}
+        >
           Přihlásit se
         </Button>
-        <Button
-          onClick={() => setModal("register")}
-          style={{
-            background: "#1754D8",
-            borderRadius: "20px",
-            fontWeight: 500,
-          }}
-        >
+        <Button radius={9} h={36} px="md" fz="sm" fw={500} bg="#194AD1" onClick={() => setModal("register")}>
           Začít prodávat
         </Button>
       </Group>
