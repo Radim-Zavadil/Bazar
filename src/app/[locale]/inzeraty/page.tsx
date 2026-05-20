@@ -1,5 +1,4 @@
 import { Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import { eq } from "drizzle-orm";
 import { ListingCard } from "../../../components/ListingCard";
 import { db } from "../../../db";
 import { listings } from "../../../db/schemas";
@@ -7,11 +6,11 @@ import { listings } from "../../../db/schemas";
 export const dynamic = "force-dynamic";
 
 type Props = {
-  searchParams: Promise<{ kategorie?: string }>;
+  searchParams: Promise<{ kategorie?: string; q?: string }>;
 };
 
 export default async function ListingsPage({ searchParams }: Props) {
-  const { kategorie } = await searchParams;
+  const { kategorie, q } = await searchParams;
 
   // Zkontrolujeme, zda jsou v databázi nějaké inzeráty
   let allListings = await db.select().from(listings);
@@ -70,18 +69,29 @@ export default async function ListingsPage({ searchParams }: Props) {
     allListings = await db.select().from(listings);
   }
 
-  // Filtrujeme podle kategorie, pokud je zadána
-  const filtered = kategorie ? await db.select().from(listings).where(eq(listings.category, kategorie)) : allListings;
+  // Filtrujeme podle kategorie a/nebo hledaného výrazu
+  let filtered = kategorie ? allListings.filter((l) => l.category === kategorie) : allListings;
+
+  if (q) {
+    const lower = q.toLowerCase();
+    filtered = filtered.filter(
+      (l) => l.title.toLowerCase().includes(lower) || (l.description ?? "").toLowerCase().includes(lower),
+    );
+  }
 
   return (
     <Container size="lg" py={40}>
       <Stack gap="xl">
         <Stack gap="xs">
           <Title order={1} size="h2" c="#202020">
-            {kategorie ? kategorie : "Aktuální inzeráty"}
+            {kategorie ? kategorie : q ? `Výsledky pro „${q}"` : "Aktuální inzeráty"}
           </Title>
           <Text c="#6C6C6C">
-            {kategorie ? `Inzeráty v kategorii „${kategorie}".` : "Prohlédněte si nejnovější věci v našem bazaru."}
+            {kategorie
+              ? `Inzeráty v kategorii „${kategorie}".`
+              : q
+                ? `Nalezeno ${filtered.length} inzerátů.`
+                : "Prohlédněte si nejnovější věci v našem bazaru."}
           </Text>
         </Stack>
 

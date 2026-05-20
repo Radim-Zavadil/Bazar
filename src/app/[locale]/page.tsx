@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { CategoryGrid } from "../../components/CategoryGrid";
+import { SearchBar } from "../../components/SearchBar";
 import { db } from "../../db";
 import { listings } from "../../db/schemas";
 
@@ -30,6 +31,8 @@ export default async function Page(_: PageProps<"/[locale]">) {
             Kde věci nacházejí nový domov
           </Text>
         </Stack>
+
+        <SearchBar />
 
         <CategoryGrid />
 
