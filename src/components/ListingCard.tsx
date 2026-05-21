@@ -16,6 +16,7 @@ export type Listing = {
   status: string;
   imageUrl: string | null;
   itemCondition?: string;
+  userId: string;
 };
 
 type ListingCardProps = {

@@ -4,6 +4,7 @@ import { Button, Image, Modal, PasswordInput, Stack, Text, TextInput } from "@ma
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import { FiChevronLeft } from "react-icons/fi";
+import { registerUser } from "@/actions/auth.actions";
 import { signIn, signUp } from "@/lib/auth-client";
 
 type Mode = "login" | "register";
@@ -56,10 +57,27 @@ export function AuthModal({ opened, mode, onClose }: AuthModalProps) {
     const email = emailForm.values.email;
     const password = values.password;
 
-    const result =
-      mode === "login"
-        ? await signIn.email({ email, password })
-        : await signUp.email({ email, password, name: email.split("@")[0] });
+    let result: { error: { message?: string } | null } = { error: null };
+
+    if (mode === "login") {
+      result = await signIn.email({ email, password });
+    } else {
+      const name = email.split("@")[0] || "Uživatel";
+      const customReg = await registerUser({ email, password, name });
+      if (!customReg.success) {
+        setLoading(false);
+        setError(customReg.error || "Registrace selhala.");
+        return;
+      }
+
+      if (customReg.needsSignIn) {
+        // Automatically sign them in
+        result = await signIn.email({ email, password });
+      } else {
+        // Standard Better Auth sign up
+        result = await signUp.email({ email, password, name });
+      }
+    }
 
     setLoading(false);
 
