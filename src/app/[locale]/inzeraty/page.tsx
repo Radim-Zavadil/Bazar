@@ -1,7 +1,9 @@
 import { Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { eq } from "drizzle-orm";
 import { ListingCard } from "../../../components/ListingCard";
 import { db } from "../../../db";
 import { listings } from "../../../db/schemas";
+import { user } from "../../../db/schemas/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,31 @@ export default async function ListingsPage({ searchParams }: Props) {
 
   // Pokud je databáze prázdná, přidáme 5 ukázkových inzerátů
   if (allListings.length === 0) {
+    let seedUser = await db.query.user.findFirst({
+      where: eq(user.email, "seed@example.com"),
+    });
+
+    if (!seedUser) {
+      const seedUserId = crypto.randomUUID();
+      await db.insert(user).values({
+        id: seedUserId,
+        name: "Seed User",
+        email: "seed@example.com",
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      seedUser = {
+        id: seedUserId,
+        name: "Seed User",
+        email: "seed@example.com",
+        emailVerified: true,
+        image: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
+
     await db.insert(listings).values([
       {
         title: "Zimní bunda North Face",
@@ -27,6 +54,7 @@ export default async function ListingsPage({ searchParams }: Props) {
         category: "Oblečení",
         status: "Dostupné",
         imageUrl: null,
+        userId: seedUser.id,
       },
       {
         title: "Dřevěná jídelní židle",
@@ -37,6 +65,7 @@ export default async function ListingsPage({ searchParams }: Props) {
         category: "Nábytek",
         status: "Dostupné",
         imageUrl: null,
+        userId: seedUser.id,
       },
       {
         title: "Lego Duplo krabice",
@@ -47,6 +76,7 @@ export default async function ListingsPage({ searchParams }: Props) {
         category: "Dětské věci",
         status: "Rezervováno",
         imageUrl: null,
+        userId: seedUser.id,
       },
       {
         title: "Monitor Dell 24 palců",
@@ -57,6 +87,7 @@ export default async function ListingsPage({ searchParams }: Props) {
         category: "Elektronika",
         status: "Dostupné",
         imageUrl: null,
+        userId: seedUser.id,
       },
       {
         title: "Série knih Harry Potter (1-7)",
@@ -67,6 +98,7 @@ export default async function ListingsPage({ searchParams }: Props) {
         category: "Knihy",
         status: "Prodáno / předáno",
         imageUrl: null,
+        userId: seedUser.id,
       },
     ]);
 

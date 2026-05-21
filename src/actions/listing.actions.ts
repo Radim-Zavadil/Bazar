@@ -1,9 +1,12 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import * as z from "zod";
 import { db } from "@/db";
 import { listings } from "@/db/schemas";
+import { auth } from "@/lib/auth";
 
 const createListingSchema = z.object({
   title: z.string().min(1, "Název je povinný"),
@@ -18,7 +21,6 @@ const createListingSchema = z.object({
 });
 
 export type CreateListingInput = z.infer<typeof createListingSchema>;
-
 export type CreateListingResult = { success: true } | { success: false; error: string };
 
 export async function createListing(input: CreateListingInput): Promise<CreateListingResult> {
@@ -29,6 +31,14 @@ export async function createListing(input: CreateListingInput): Promise<CreateLi
       success: false,
       error: parsed.error.issues[0]?.message ?? "Neplatná data",
     };
+  }
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    return { success: false, error: "Pro vytvoření inzerátu se musíte přihlásit" };
   }
 
   const data = parsed.data;
@@ -43,7 +53,75 @@ export async function createListing(input: CreateListingInput): Promise<CreateLi
     itemCondition: data.itemCondition,
     status: data.status,
     imageUrl: data.imageUrl ?? null,
+    userId: session.user.id,
   });
+
+  revalidatePath("/");
+  revalidatePath("/inzeraty");
+
+  return { success: true };
+}
+
+const updateListingSchema = z.object({
+  title: z.string().min(1, "Název je povinný"),
+  description: z.string().min(1, "Popis je povinný"),
+  price: z.number().min(0, "Cena nemůže být záporná"),
+  category: z.string().min(1, "Kategorie je povinná"),
+  itemCondition: z.enum(["Nové", "Použité"]),
+  status: z.string().min(1, "Stav je povinný"),
+  imageUrl: z.string().nullable().optional(),
+  contactName: z.string().min(1, "Jméno kontaktu je povinné"),
+  contactEmail: z.string().email("Neplatný e-mail").or(z.string().length(0)).nullable().optional(),
+});
+
+export type UpdateListingInput = z.infer<typeof updateListingSchema>;
+
+export async function updateListing(listingId: number, input: UpdateListingInput): Promise<CreateListingResult> {
+  const parsed = updateListingSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Neplatná data",
+    };
+  }
+
+  const data = parsed.data;
+
+  const activeSession = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!activeSession?.user) {
+    return { success: false, error: "Nejste přihlášen(a)" };
+  }
+
+  const existingListing = await db.query.listings.findFirst({
+    where: eq(listings.id, listingId),
+  });
+
+  if (!existingListing) {
+    return { success: false, error: "Inzerát nebyl nalezen" };
+  }
+
+  if (existingListing.userId !== activeSession.user.id) {
+    return { success: false, error: "Tento inzerát vám nepatří" };
+  }
+
+  await db
+    .update(listings)
+    .set({
+      title: data.title,
+      description: data.description,
+      sellerName: data.contactName,
+      contactEmail: data.contactEmail || null,
+      price: data.price === 0 ? null : data.price,
+      category: data.category,
+      itemCondition: data.itemCondition,
+      status: data.status,
+      imageUrl: data.imageUrl ?? null,
+    })
+    .where(eq(listings.id, listingId));
 
   revalidatePath("/");
   revalidatePath("/inzeraty");

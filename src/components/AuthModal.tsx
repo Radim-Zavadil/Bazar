@@ -42,7 +42,7 @@ export function AuthModal({ opened, mode, onClose }: AuthModalProps) {
     onClose();
   }
 
-  function handleEmailSubmit(values: { email: string }) {
+  function handleEmailSubmit() {
     emailForm.validate();
     if (!emailForm.isValid()) return;
     setError(null);
@@ -56,10 +56,14 @@ export function AuthModal({ opened, mode, onClose }: AuthModalProps) {
     const email = emailForm.values.email;
     const password = values.password;
 
-    const result =
-      mode === "login"
-        ? await signIn.email({ email, password })
-        : await signUp.email({ email, password, name: email.split("@")[0] });
+    let result: { error: { message?: string } | null } = { error: null };
+
+    if (mode === "login") {
+      result = await signIn.email({ email, password });
+    } else {
+      const name = email.split("@")[0] || "Uživatel";
+      result = await signUp.email({ email, password, name });
+    }
 
     setLoading(false);
 

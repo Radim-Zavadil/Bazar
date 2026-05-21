@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { user } from "./auth";
 
 export const listings = sqliteTable("listings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -12,5 +13,8 @@ export const listings = sqliteTable("listings", {
   status: text("status").notNull(), // "Dostupné", "Rezervováno", "Prodáno / předáno"
   itemCondition: text("item_condition").notNull().default("Nové"), // "Nové", "Použité"
   imageUrl: text("image_url"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`),
 });
