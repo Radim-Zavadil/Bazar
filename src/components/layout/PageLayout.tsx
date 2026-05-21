@@ -1,6 +1,6 @@
 "use client";
 
-import { ActionIcon, Anchor, AppShell, Box, Button, Container, Group, Stack } from "@mantine/core";
+import { ActionIcon, Anchor, AppShell, Box, Container, Group, Stack, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Plus } from "lucide-react";
 import type { PropsWithChildren } from "react";
@@ -8,12 +8,16 @@ import { FaFacebook, FaInstagram } from "react-icons/fa";
 import { AuthNav } from "@/components/AuthNav";
 import { CreateListingModal } from "@/components/CreateListingModal";
 import { PageLogo } from "@/components/layout/PageLogo";
+import { useSession } from "@/lib/auth-client";
 
 const HEADER_HEIGHT = 90;
 const BODY_MAX_WIDTH = 1280;
 
 export function PageLayout({ children }: PropsWithChildren) {
   const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
+  const { data: session } = useSession();
+
+  const isLoggedIn = !!session?.user;
 
   return (
     <>
@@ -25,36 +29,24 @@ export function PageLayout({ children }: PropsWithChildren) {
               <PageLogo />
               <Group gap="sm">
                 <AuthNav />
-                {/*<Button
-                  variant="outline"
-                  color="gray"
-                  radius={9}
-                  h={36}
-                  px="md"
-                  fz="sm"
-                  fw={500}
-                  c="black"
-                  styles={{ root: { borderColor: "#E9E9E9" } }}
-                >
-                  Přihlásit se
-                </Button>
-
-                <Button radius={9} h={36} px="md" fz="sm" fw={500} bg="#194AD1">
-                  Začít prodávat
-                </Button>*/}
-
-                <ActionIcon
-                  id="btn-create-listing"
-                  onClick={openModal}
-                  variant="subtle"
-                  color="gray"
-                  radius={9}
-                  h={36}
-                  w={36}
-                  aria-label="Vytvořit inzerát"
-                >
-                  <Plus size={20} color="#333" />
-                </ActionIcon>
+                <Tooltip label="Přihlaste se nebo si vytvořte účet" disabled={isLoggedIn} withArrow position="bottom">
+                  <ActionIcon
+                    id="btn-create-listing"
+                    onClick={isLoggedIn ? openModal : undefined}
+                    variant="subtle"
+                    color="gray"
+                    radius={9}
+                    h={36}
+                    w={36}
+                    aria-label="Vytvořit inzerát"
+                    style={{
+                      opacity: isLoggedIn ? 1 : 0.4,
+                      cursor: isLoggedIn ? "pointer" : "default",
+                    }}
+                  >
+                    <Plus size={20} color={isLoggedIn ? "#333" : "#999"} />
+                  </ActionIcon>
+                </Tooltip>
               </Group>
             </Group>
           </Container>
