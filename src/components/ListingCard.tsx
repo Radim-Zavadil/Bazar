@@ -1,8 +1,9 @@
 "use client";
 
-import { Badge, Card, Group, Stack, Text } from "@mantine/core";
+import { Badge, Box, Card, Group, Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import Image from "next/image";
+import { TbArrowUpRight } from "react-icons/tb";
 import { ViewListingModal } from "./ViewListingModal";
 
 export type Listing = {
@@ -23,6 +24,18 @@ type ListingCardProps = {
   listing: Listing;
 };
 
+const statusColor: Record<string, string> = {
+  Dostupné: "#1A6B3C",
+  Rezervováno: "#92620A",
+  Prodáno: "#555555",
+};
+
+const statusBg: Record<string, string> = {
+  Dostupné: "#DCFCE790",
+  Rezervováno: "#CFBE9E90",
+  Prodáno: "#EBEBEB90",
+};
+
 export function ListingCard({ listing }: ListingCardProps) {
   const [opened, { open, close }] = useDisclosure(false);
   const isFree = listing.price === null || listing.price === 0;
@@ -31,66 +44,99 @@ export function ListingCard({ listing }: ListingCardProps) {
     <>
       <Card
         withBorder
-        radius={15}
-        padding="md"
+        radius="lg"
+        p={0}
         onClick={open}
         style={{
-          backgroundColor: "transparent",
           borderColor: "#E5E5E5",
           cursor: "pointer",
+          background: "#fff",
+          overflow: "hidden",
         }}
       >
-        <Card.Section>
-          {listing.imageUrl ? (
-            <div className="relative w-full h-48">
-              <Image src={listing.imageUrl} alt={listing.title} fill unoptimized style={{ objectFit: "cover" }} />
-            </div>
-          ) : (
-            <div className="w-full h-48 bg-[#333333] flex items-center justify-center">
-              <Text c="white" size="sm">
-                Bez obrázku
-              </Text>
-            </div>
-          )}
-        </Card.Section>
-
-        <Stack gap="xs" mt="md" flex={1}>
-          <Group justify="space-between" align="flex-start" wrap="nowrap">
-            <Text fw={600} size="lg" c="#202020" lineClamp={1}>
-              {listing.title}
-            </Text>
+        {/* Image area — square */}
+        <Box
+          style={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: "8 / 7",
+            background: "#ffffff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
+          {/* Status badge — top left */}
+          <Box style={{ position: "absolute", top: 14, left: 14, zIndex: 2 }}>
             <Badge
-              variant="light"
-              color={listing.status === "Dostupné" ? "green" : listing.status === "Rezervováno" ? "yellow" : "gray"}
-              style={{ flexShrink: 0 }}
+              size="sm"
+              radius="xl"
+              style={{
+                background: statusBg[listing.status] ?? "#EBEBEB",
+                color: statusColor[listing.status] ?? "#555555",
+                fontWeight: 500,
+                fontSize: 11,
+                letterSpacing: 0.3,
+                border: "none",
+                padding: "4px 10px",
+              }}
             >
               {listing.status}
             </Badge>
-          </Group>
+          </Box>
 
-          <Text fw={500} size="sm" c="#6C6C6C" lineClamp={2}>
-            {listing.description}
-          </Text>
+          {/* Arrow circle — top right, decorative */}
+          <Box
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 14,
+              zIndex: 2,
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              background: "#F5F5F5",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <TbArrowUpRight size={18} color="#222" strokeWidth={1.8} />
+          </Box>
 
-          <Badge variant="outline" color="gray" size="sm" mt={4}>
-            {listing.category}
-          </Badge>
-        </Stack>
-
-        <Stack gap={4} mt="xl">
-          <Text size="xs" c="#8A8A8A" fw={500}>
-            Prodává
-          </Text>
-          <Group justify="space-between" align="flex-end">
-            <Text size="sm" c="#AEAEAE" fw={400}>
-              {listing.sellerName}
+          {listing.imageUrl ? (
+            <div style={{ position: "relative", width: "78%", height: "78%" }}>
+              <Image src={listing.imageUrl} alt={listing.title} fill unoptimized style={{ objectFit: "contain" }} />
+            </div>
+          ) : (
+            <Text size="xs" c="#aaa" style={{ fontWeight: 400 }}>
+              Bez obrázku
             </Text>
-            <Text fw={700} size="lg" c="#1753D7">
+          )}
+        </Box>
+
+        {/* Text content */}
+        <Stack gap={2} p="md" pt={12} pb={16}>
+          <Text size="xs" style={{ color: "#828282", fontWeight: 400, letterSpacing: 0.2 }}>
+            {listing.category}
+          </Text>
+
+          <Group justify="space-between" align="flex-start" gap={8} wrap="nowrap">
+            <Text size="sm" style={{ color: "#111", fontWeight: 500, lineHeight: 1.35, flex: 1 }} lineClamp={2}>
+              {listing.title}
+            </Text>
+            <Text size="sm" style={{ color: "#111", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>
               {isFree ? "Zdarma" : `${listing.price} Kč`}
             </Text>
           </Group>
+
+          <Text size="xs" style={{ color: "#ABABAB", fontWeight: 400, marginTop: 2 }}>
+            Prodává · {listing.sellerName}
+          </Text>
         </Stack>
       </Card>
+
       <ViewListingModal opened={opened} onClose={close} listing={listing} />
     </>
   );
