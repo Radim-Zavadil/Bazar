@@ -13,6 +13,8 @@ const createListingSchema = z.object({
   itemCondition: z.enum(["Nové", "Použité"]),
   status: z.string().default("Dostupné"),
   imageUrl: z.string().nullable().optional(),
+  contactName: z.string().min(1, "Jméno kontaktu je povinné"),
+  contactEmail: z.string().email("Neplatný e-mail").or(z.string().length(0)).nullable().optional(),
 });
 
 export type CreateListingInput = z.infer<typeof createListingSchema>;
@@ -34,7 +36,8 @@ export async function createListing(input: CreateListingInput): Promise<CreateLi
   await db.insert(listings).values({
     title: data.title,
     description: data.description,
-    sellerName: "Uživatel",
+    sellerName: data.contactName,
+    contactEmail: data.contactEmail || null,
     price: data.price === 0 ? null : data.price,
     category: data.category,
     itemCondition: data.itemCondition,

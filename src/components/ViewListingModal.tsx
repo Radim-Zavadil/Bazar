@@ -4,8 +4,8 @@ import {
   Box,
   Group,
   Modal,
+  NativeSelect,
   NumberInput,
-  Select,
   Stack,
   Text,
   Textarea,
@@ -141,10 +141,10 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
           />
 
           {/* Category */}
-          <Select
+          <NativeSelect
             label="Kategorie"
             value={listing.category}
-            readOnly
+            disabled
             data={CATEGORIES}
             radius={8}
             styles={{
@@ -219,6 +219,30 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
               input: { borderColor: "#D5D5D5", fontSize: 14, resize: "none", background: "#FFF" },
             }}
           />
+
+          {/* Contact Details */}
+          <Group grow wrap="nowrap" align="flex-start">
+            <TextInput
+              label="Jméno kontaktu"
+              value={listing.sellerName}
+              readOnly
+              radius={8}
+              styles={{
+                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+                input: { borderColor: "#D5D5D5", fontSize: 14, background: "#FFF" },
+              }}
+            />
+            <TextInput
+              label="E-mail"
+              value={listing.contactEmail || ""}
+              readOnly
+              radius={8}
+              styles={{
+                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+                input: { borderColor: "#D5D5D5", fontSize: 14, background: "#FFF" },
+              }}
+            />
+          </Group>
         </Stack>
       </Box>
     </Modal>

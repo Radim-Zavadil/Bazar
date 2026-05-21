@@ -5,8 +5,8 @@ import {
   Button,
   Group,
   Modal,
+  NativeSelect,
   NumberInput,
-  Select,
   Stack,
   Text,
   Textarea,
@@ -15,8 +15,9 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { Upload, X } from "lucide-react";
-import { useCallback, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { createListing } from "@/actions/listing.actions";
+import { useSession } from "@/lib/auth-client";
 
 const CATEGORIES = ["Elektronika", "Oblečení", "Nábytek", "Dětské věci", "Knihy", "Sport", "Ostatní"];
 
@@ -30,6 +31,7 @@ type Props = {
 };
 
 export function CreateListingModal({ opened, onClose }: Props) {
+  const { data: session } = useSession();
   const [isPending, startTransition] = useTransition();
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -42,13 +44,33 @@ export function CreateListingModal({ opened, onClose }: Props) {
       category: "Ostatní",
       itemCondition: "Nové" as Condition,
       description: "",
+      contactName: "",
+      contactEmail: "",
     },
     validate: {
       title: (v) => (v.trim().length === 0 ? "Název je povinný" : null),
       category: (v) => (v.trim().length === 0 ? "Kategorie je povinná" : null),
       description: (v) => (v.trim().length === 0 ? "Popis je povinný" : null),
+      contactName: (v) => (v.trim().length === 0 ? "Jméno kontaktu je povinné" : null),
+      contactEmail: (v) => (v && !/^\S+@\S+\.\S+$/.test(v) ? "Neplatný e-mail" : null),
     },
   });
+
+  useEffect(() => {
+    if (opened) {
+      if (session?.user) {
+        form.setValues({
+          contactName: session.user.name || "",
+          contactEmail: session.user.email || "",
+        });
+      } else {
+        form.setValues({
+          contactName: "",
+          contactEmail: "",
+        });
+      }
+    }
+  }, [opened, session, form.setValues]);
 
   const handleFile = useCallback((file: File | undefined) => {
     if (!file) return;
@@ -88,6 +110,8 @@ export function CreateListingModal({ opened, onClose }: Props) {
         itemCondition: values.itemCondition,
         status: "Dostupné",
         imageUrl: previewUrl,
+        contactName: values.contactName,
+        contactEmail: values.contactEmail,
       });
 
       if (result.success) {
@@ -211,6 +235,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
           <TextInput
             label="Název"
             placeholder="Zadejte název inzerátu"
+            required
             radius={8}
             styles={{
               label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
@@ -233,7 +258,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
           />
 
           {/* Category */}
-          <Select
+          <NativeSelect
             label="Kategorie"
             data={CATEGORIES}
             radius={8}
@@ -311,6 +336,31 @@ export function CreateListingModal({ opened, onClose }: Props) {
             }}
             {...form.getInputProps("description")}
           />
+
+          {/* Contact Details */}
+          <Group grow wrap="nowrap" align="flex-start">
+            <TextInput
+              label="Jméno kontaktu"
+              placeholder="Zadejte jméno"
+              required
+              radius={8}
+              styles={{
+                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+                input: { borderColor: "#D5D5D5", fontSize: 14 },
+              }}
+              {...form.getInputProps("contactName")}
+            />
+            <TextInput
+              label="E-mail"
+              placeholder="Zadejte e-mail"
+              radius={8}
+              styles={{
+                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+                input: { borderColor: "#D5D5D5", fontSize: 14 },
+              }}
+              {...form.getInputProps("contactEmail")}
+            />
+          </Group>
 
           {/* Submit */}
           <Button

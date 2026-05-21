@@ -10,6 +10,7 @@ export type Listing = {
   title: string;
   description: string;
   sellerName: string;
+  contactEmail: string | null;
   price: number | null;
   category: string;
   status: string;
