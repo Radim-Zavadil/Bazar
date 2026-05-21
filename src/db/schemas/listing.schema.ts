@@ -6,6 +6,7 @@ export const listings = sqliteTable("listings", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   sellerName: text("seller_name").notNull().default("Uživatel"),
+  contactEmail: text("contact_email"),
   price: integer("price"), // null means "Zdarma"
   category: text("category").notNull(),
   status: text("status").notNull(), // "Dostupné", "Rezervováno", "Prodáno / předáno"
