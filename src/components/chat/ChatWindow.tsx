@@ -1,9 +1,11 @@
 "use client";
 
-import { ActionIcon, Box, Divider, Group, ScrollArea, Text, TextInput, Title } from "@mantine/core";
+import { ActionIcon, Box, Divider, Group, ScrollArea, Text, TextInput, Tooltip } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
-import { IoSend } from "react-icons/io5";
-import type { Chat } from "./ChatPanel";
+import { FaCirclePlus } from "react-icons/fa6";
+import { HiPaperAirplane } from "react-icons/hi2";
+import { IoChevronBack } from "react-icons/io5";
+import type { ChatWithLastMessage } from "./ChatPanel";
 
 interface Message {
   id: number;
@@ -14,18 +16,20 @@ interface Message {
 }
 
 interface ChatWindowProps {
-  chat: Chat;
+  chat: ChatWithLastMessage;
   currentUser: string;
-  onMessagesUpdate?: () => void;
+  isLoggedIn: boolean;
+  onBack: () => void;
+  onMessagesUpdate: () => void;
 }
 
-export function ChatWindow({ chat, currentUser, onMessagesUpdate }: ChatWindowProps) {
+export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUpdate }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const viewport = useRef<HTMLDivElement>(null);
 
-  // Load messages for this chat
+  // Load messages when chat changes
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -44,8 +48,8 @@ export function ChatWindow({ chat, currentUser, onMessagesUpdate }: ChatWindowPr
     };
   }, [chat.id]);
 
-  // Auto-scroll to bottom
-  // biome-ignore lint/correctness/useExhaustiveDependencies: We want to scroll whenever a new message arrives
+  // Auto-scroll to bottom on new messages
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on message count change
   useEffect(() => {
     if (viewport.current) {
       viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: "smooth" });
@@ -54,19 +58,19 @@ export function ChatWindow({ chat, currentUser, onMessagesUpdate }: ChatWindowPr
 
   async function handleSend() {
     const content = input.trim();
-    if (!content || sending) return;
+    if (!content || sending || !isLoggedIn) return;
     setSending(true);
     try {
       const res = await fetch(`/api/chats/${chat.id}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senderName: currentUser, content }),
+        body: JSON.stringify({ content }),
       });
       if (!res.ok) return;
-      const msg = await res.json();
+      const msg: Message = await res.json();
       setMessages((prev) => [...prev, msg]);
       setInput("");
-      onMessagesUpdate?.();
+      onMessagesUpdate();
     } finally {
       setSending(false);
     }
@@ -79,63 +83,100 @@ export function ChatWindow({ chat, currentUser, onMessagesUpdate }: ChatWindowPr
     }
   }
 
-  function formatTime(iso: string) {
-    return new Date(iso).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+  // Group messages by date for timestamp headers
+  function formatDateHeader(iso: string) {
+    const d = new Date(iso);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+    if (diffDays === 0) {
+      return `Dnes v ${d.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}`;
+    }
+    if (diffDays === 1) return "Včera";
+    return d.toLocaleDateString("cs-CZ", { day: "numeric", month: "long" });
   }
 
+  // The other person in the chat
+  const otherPerson = chat.buyerName === currentUser ? chat.sellerName : chat.buyerName;
+
   return (
-    <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Header */}
-      <Box px="md" py="sm">
-        <Title order={6} fw={700}>
-          {chat.listingTitle}
-        </Title>
-        <Text size="xs" c="dimmed">
-          {chat.sellerName}
-        </Text>
+    <Box style={{ display: "flex", flexDirection: "column", height: "100%", background: "#fff" }}>
+      {/* ── Header ── */}
+      <Box
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "12px 16px",
+          borderBottom: "1px solid #F0F0F0",
+          flexShrink: 0,
+        }}
+      >
+        <ActionIcon variant="subtle" color="dark" size="md" onClick={onBack} aria-label="Zpět">
+          <IoChevronBack size={20} />
+        </ActionIcon>
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <Text fw={600} size="sm" truncate>
+            {chat.listingTitle}
+          </Text>
+          <Text size="xs" c="dimmed" truncate>
+            {otherPerson}
+          </Text>
+        </Box>
       </Box>
 
-      <Divider />
-
-      {/* Messages */}
-      <ScrollArea viewportRef={viewport} style={{ flex: 1 }} px="md" py="sm">
+      {/* ── Messages ── */}
+      <ScrollArea viewportRef={viewport} style={{ flex: 1 }} px={16} py={12}>
         {messages.length === 0 ? (
           <Text size="sm" c="dimmed" ta="center" pt="xl">
-            Zatím žádné zprávy. Pozdrav první!
+            Zatím žádné zprávy. Začněte konverzaci!
           </Text>
         ) : (
-          <Box style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {messages.map((msg) => {
+          <Box style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {messages.map((msg, i) => {
               const isMe = msg.senderName === currentUser;
+              const prevMsg = messages[i - 1];
+              // Show date header if first message or different day
+              const showDateHeader =
+                i === 0 || new Date(prevMsg.createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+
               return (
-                <Box
-                  key={msg.id}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: isMe ? "flex-end" : "flex-start",
-                  }}
-                >
-                  {!isMe && (
-                    <Text size="xs" c="dimmed" mb={2}>
-                      {msg.senderName}
+                <Box key={msg.id}>
+                  {showDateHeader && (
+                    <Text
+                      size="xs"
+                      c="dimmed"
+                      ta="center"
+                      py={8}
+                      style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 10 }}
+                    >
+                      {formatDateHeader(msg.createdAt)}
                     </Text>
                   )}
                   <Box
                     style={{
-                      background: isMe ? "var(--mantine-color-blue-6)" : "var(--mantine-color-gray-1)",
-                      color: isMe ? "white" : "inherit",
-                      borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                      padding: "8px 14px",
-                      maxWidth: "75%",
-                      wordBreak: "break-word",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: isMe ? "flex-end" : "flex-start",
+                      marginBottom: 2,
                     }}
                   >
-                    <Text size="sm">{msg.content}</Text>
+                    <Box
+                      style={{
+                        background: isMe ? "#1754D8" : "#EFEFEF",
+                        color: isMe ? "#fff" : "#1A1A1A",
+                        // iOS-style sharp tail on the bottom corner
+                        borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                        padding: "9px 14px",
+                        maxWidth: "78%",
+                        wordBreak: "break-word",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <Text size="sm" style={{ color: "inherit", lineHeight: 1.45 }}>
+                        {msg.content}
+                      </Text>
+                    </Box>
                   </Box>
-                  <Text size="xs" c="dimmed" mt={2}>
-                    {formatTime(msg.createdAt)}
-                  </Text>
                 </Box>
               );
             })}
@@ -143,33 +184,66 @@ export function ChatWindow({ chat, currentUser, onMessagesUpdate }: ChatWindowPr
         )}
       </ScrollArea>
 
-      <Divider />
+      {/* ── Input bar ── */}
+      <Box
+        style={{
+          borderTop: "1px solid #F0F0F0",
+          padding: "10px 12px",
+          background: "#fff",
+          flexShrink: 0,
+        }}
+      >
+        {!isLoggedIn ? (
+          <Text size="sm" c="dimmed" ta="center" py={4}>
+            Pro psaní zpráv se musíte přihlásit.
+          </Text>
+        ) : (
+          <Group gap={8} wrap="nowrap" align="center">
+            {/* Plus button — decorative / future attachment */}
+            <ActionIcon variant="subtle" color="gray" size="lg" radius="xl" aria-label="Příloha" disabled>
+              <FaCirclePlus size={22} color="#A0A0A0" />
+            </ActionIcon>
 
-      {/* Input */}
-      <Group px="md" py="sm" gap="xs" wrap="nowrap">
-        <TextInput
-          style={{ flex: 1 }}
-          placeholder="Napsat zprávu..."
-          value={input}
-          onChange={(e) => setInput(e.currentTarget.value)}
-          onKeyDown={handleKeyDown}
-          radius="xl"
-          size="sm"
-          disabled={sending}
-        />
-        <ActionIcon
-          size="lg"
-          radius="xl"
-          variant="filled"
-          color="blue"
-          onClick={handleSend}
-          loading={sending}
-          disabled={!input.trim()}
-          aria-label="Odeslat zprávu"
-        >
-          <IoSend size={15} />
-        </ActionIcon>
-      </Group>
+            <TextInput
+              style={{ flex: 1 }}
+              placeholder="Zpráva..."
+              value={input}
+              onChange={(e) => setInput(e.currentTarget.value)}
+              onKeyDown={handleKeyDown}
+              radius="xl"
+              size="sm"
+              disabled={sending}
+              styles={{
+                input: {
+                  border: "1px solid #E8E8E8",
+                  background: "#F8F8F8",
+                  fontSize: 14,
+                  paddingLeft: 16,
+                  paddingRight: 16,
+                },
+              }}
+            />
+
+            <Tooltip label="Odeslat" withArrow position="top" disabled={!input.trim()}>
+              <ActionIcon
+                size="lg"
+                radius="xl"
+                variant="filled"
+                onClick={handleSend}
+                loading={sending}
+                disabled={!input.trim()}
+                aria-label="Odeslat zprávu"
+                style={{
+                  background: input.trim() ? "#1754D8" : "#E0E0E0",
+                  transition: "background 0.15s",
+                }}
+              >
+                <HiPaperAirplane size={16} color={input.trim() ? "#fff" : "#999"} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+        )}
+      </Box>
     </Box>
   );
 }

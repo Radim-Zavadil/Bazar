@@ -4,7 +4,7 @@ import { ActionIcon, Anchor, AppShell, Box, Container, Group, Stack, Tooltip } f
 import { useDisclosure } from "@mantine/hooks";
 import { Plus } from "lucide-react";
 import type { PropsWithChildren } from "react";
-import { useState } from "react";
+import { createContext, useCallback, useContext, useState } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import { IoChatbubbleEllipses, IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import { AuthNav } from "@/components/AuthNav";
@@ -16,17 +16,42 @@ import { useSession } from "@/lib/auth-client";
 const HEADER_HEIGHT = 90;
 const BODY_MAX_WIDTH = 1280;
 
+// ── Context so ListingCard (deep in the tree) can open the chat drawer ──
+interface OpenChatContextValue {
+  openChat: (chatId: number) => void;
+}
+
+export const OpenChatContext = createContext<OpenChatContextValue>({
+  openChat: () => {},
+});
+
+export function useOpenChat() {
+  return useContext(OpenChatContext);
+}
+
 export function PageLayout({ children }: PropsWithChildren) {
   const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
   const { data: session } = useSession();
 
   const [chatOpen, setChatOpen] = useState(false);
+  const [pendingChatId, setPendingChatId] = useState<number | null>(null);
 
   const isLoggedIn = !!session?.user;
-  const currentUser = session?.user?.name ?? "Já";
+  const currentUser = session?.user?.name ?? "";
+
+  // Called by ListingCard after chat is created
+  const openChat = useCallback((chatId: number) => {
+    setPendingChatId(chatId);
+    setChatOpen(true);
+  }, []);
+
+  function handleCloseDrawer() {
+    setChatOpen(false);
+    setPendingChatId(null);
+  }
 
   return (
-    <>
+    <OpenChatContext.Provider value={{ openChat }}>
       <CreateListingModal opened={modalOpened} onClose={closeModal} />
       <AppShell header={{ height: HEADER_HEIGHT }} padding="md" withBorder={false}>
         <AppShell.Header px="md" bg="white" style={{ borderBottom: "1px solid #E5E5E5" }}>
@@ -53,10 +78,11 @@ export function PageLayout({ children }: PropsWithChildren) {
                     <Plus size={20} color={isLoggedIn ? "#333" : "#999"} />
                   </ActionIcon>
                 </Tooltip>
+
                 <Tooltip label={chatOpen ? "Zavřít zprávy" : "Zprávy"} withArrow position="bottom">
                   <ActionIcon
                     variant={chatOpen ? "light" : "subtle"}
-                    color={chatOpen ? "gray" : "gray"}
+                    color="gray"
                     size="lg"
                     radius="md"
                     aria-label="Zprávy"
@@ -100,8 +126,15 @@ export function PageLayout({ children }: PropsWithChildren) {
         </AppShell.Main>
       </AppShell>
 
-      {/* ChatDrawer must be OUTSIDE AppShell so it can overlay the full page */}
-      <ChatDrawer isOpen={chatOpen} onClose={() => setChatOpen(false)} currentUser={currentUser} />
-    </>
+      {/* ChatDrawer outside AppShell so it overlays the full page */}
+      <ChatDrawer
+        isOpen={chatOpen}
+        onClose={handleCloseDrawer}
+        currentUser={currentUser}
+        isLoggedIn={isLoggedIn}
+        initialChatId={pendingChatId}
+        onChatOpened={() => setPendingChatId(null)}
+      />
+    </OpenChatContext.Provider>
   );
 }

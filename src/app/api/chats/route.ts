@@ -1,51 +1,95 @@
-import { desc, like, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
+import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { chats } from "@/db/schemas/chats";
+import { chats, messages } from "@/db/schemas/chats";
+import { auth } from "@/lib/auth";
 
 // GET /api/chats?search=...
+// Returns all chats where the logged-in user is buyer or seller, with last message
 export async function GET(request: NextRequest) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userName = session.user.name;
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search")?.trim() ?? "";
 
-  try {
-    const rows = search
-      ? await db
-          .select()
-          .from(chats)
-          .where(
-            or(
-              like(chats.listingTitle, `%${search}%`),
-              like(chats.sellerName, `%${search}%`),
-              like(chats.buyerName, `%${search}%`),
-            ),
-          )
-          .orderBy(desc(chats.updatedAt))
-      : await db.select().from(chats).orderBy(desc(chats.updatedAt));
+  const userChats = await db
+    .select()
+    .from(chats)
+    .where(or(eq(chats.buyerName, userName), eq(chats.sellerName, userName)))
+    .orderBy(desc(chats.updatedAt));
 
-    return NextResponse.json(rows);
-  } catch {
-    return NextResponse.json({ error: "Chyba při načítání zpráv" }, { status: 500 });
-  }
+  const filtered = search
+    ? userChats.filter((c) => c.listingTitle.toLowerCase().includes(search.toLowerCase()))
+    : userChats;
+
+  // Attach last message to each chat
+  const result = await Promise.all(
+    filtered.map(async (chat) => {
+      const lastMsgs = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.chatId, chat.id))
+        .orderBy(desc(messages.createdAt))
+        .limit(1);
+      return { ...chat, lastMessage: lastMsgs[0] ?? null };
+    }),
+  );
+
+  return NextResponse.json(result);
 }
 
-// POST /api/chats  – create new chat
+// POST /api/chats
+// Body: { listingId, listingTitle, listingImage, sellerName }
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { listingId, listingTitle, listingImage, buyerName, sellerName } = body;
-
-    if (!listingId || !listingTitle || !buyerName || !sellerName) {
-      return NextResponse.json({ error: "Chybí povinná pole" }, { status: 400 });
-    }
-
-    const [chat] = await db
-      .insert(chats)
-      .values({ listingId, listingTitle, listingImage, buyerName, sellerName })
-      .returning();
-
-    return NextResponse.json(chat, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Chyba při vytváření chatu" }, { status: 500 });
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const body = await request.json();
+  const { listingId, listingTitle, listingImage, sellerName } = body as {
+    listingId: number;
+    listingTitle: string;
+    listingImage: string | null;
+    sellerName: string;
+  };
+
+  if (!listingId || !listingTitle || !sellerName) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  const buyerName = session.user.name;
+
+  if (buyerName === sellerName) {
+    return NextResponse.json({ error: "Cannot chat with yourself" }, { status: 400 });
+  }
+
+  // Return existing chat if one already exists
+  const existing = await db
+    .select()
+    .from(chats)
+    .where(and(eq(chats.listingId, listingId), eq(chats.buyerName, buyerName), eq(chats.sellerName, sellerName)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return NextResponse.json(existing[0]);
+  }
+
+  const [newChat] = await db
+    .insert(chats)
+    .values({
+      listingId,
+      listingTitle,
+      listingImage: listingImage ?? null,
+      buyerName,
+      sellerName,
+    })
+    .returning();
+
+  return NextResponse.json(newChat, { status: 201 });
 }
