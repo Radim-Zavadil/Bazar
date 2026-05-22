@@ -4,9 +4,12 @@ import { ActionIcon, Anchor, AppShell, Box, Container, Group, Stack, Tooltip } f
 import { useDisclosure } from "@mantine/hooks";
 import { Plus } from "lucide-react";
 import type { PropsWithChildren } from "react";
+import { useState } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
+import { IoChatbubbleEllipses, IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import { AuthNav } from "@/components/AuthNav";
 import { CreateListingModal } from "@/components/CreateListingModal";
+import { ChatDrawer } from "@/components/chat/ChatDrawer";
 import { PageLogo } from "@/components/layout/PageLogo";
 import { useSession } from "@/lib/auth-client";
 
@@ -17,7 +20,10 @@ export function PageLayout({ children }: PropsWithChildren) {
   const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
   const { data: session } = useSession();
 
+  const [chatOpen, setChatOpen] = useState(false);
+
   const isLoggedIn = !!session?.user;
+  const currentUser = session?.user?.name ?? "Já";
 
   return (
     <>
@@ -45,6 +51,18 @@ export function PageLayout({ children }: PropsWithChildren) {
                     }}
                   >
                     <Plus size={20} color={isLoggedIn ? "#333" : "#999"} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label={chatOpen ? "Zavřít zprávy" : "Zprávy"} withArrow position="bottom">
+                  <ActionIcon
+                    variant={chatOpen ? "light" : "subtle"}
+                    color={chatOpen ? "gray" : "gray"}
+                    size="lg"
+                    radius="md"
+                    aria-label="Zprávy"
+                    onClick={() => setChatOpen((v) => !v)}
+                  >
+                    {chatOpen ? <IoChatbubbleEllipses size={22} /> : <IoChatbubbleEllipsesOutline size={22} />}
                   </ActionIcon>
                 </Tooltip>
               </Group>
@@ -81,6 +99,9 @@ export function PageLayout({ children }: PropsWithChildren) {
           </Box>
         </AppShell.Main>
       </AppShell>
+
+      {/* ChatDrawer must be OUTSIDE AppShell so it can overlay the full page */}
+      <ChatDrawer isOpen={chatOpen} onClose={() => setChatOpen(false)} currentUser={currentUser} />
     </>
   );
 }
