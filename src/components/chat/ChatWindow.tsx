@@ -1,10 +1,11 @@
 "use client";
 
-import { ActionIcon, Box, Divider, Group, ScrollArea, Text, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Box, Divider, Group, ScrollArea, Text, TextInput, Tooltip, UnstyledButton } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { HiPaperAirplane } from "react-icons/hi2";
-import { IoChevronBack } from "react-icons/io5";
+import { IoChevronBack, IoClose } from "react-icons/io5";
+import { RiMoneyDollarCircleFill } from "react-icons/ri";
 import type { ChatWithLastMessage } from "./ChatPanel";
 
 interface Message {
@@ -27,6 +28,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const viewport = useRef<HTMLDivElement>(null);
 
   // Load messages when chat changes
@@ -52,7 +54,10 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on message count change
   useEffect(() => {
     if (viewport.current) {
-      viewport.current.scrollTo({ top: viewport.current.scrollHeight, behavior: "smooth" });
+      viewport.current.scrollTo({
+        top: viewport.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages.length]);
 
@@ -99,7 +104,15 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
   const otherPerson = chat.buyerName === currentUser ? chat.sellerName : chat.buyerName;
 
   return (
-    <Box style={{ display: "flex", flexDirection: "column", height: "100%", background: "#fff" }}>
+    <Box
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        background: "#fff",
+        position: "relative",
+      }}
+    >
       {/* ── Header ── */}
       <Box
         style={{
@@ -125,7 +138,16 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
       </Box>
 
       {/* ── Messages ── */}
-      <ScrollArea viewportRef={viewport} style={{ flex: 1 }} px={16} py={12}>
+      <ScrollArea
+        viewportRef={viewport}
+        style={{
+          flex: 1,
+          filter: menuOpen ? "blur(4px)" : "none",
+          transition: "filter 0.2s ease",
+        }}
+        px={16}
+        py={12}
+      >
         {messages.length === 0 ? (
           <Text size="sm" c="dimmed" ta="center" pt="xl">
             Zatím žádné zprávy. Začněte konverzaci!
@@ -147,7 +169,11 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
                       c="dimmed"
                       ta="center"
                       py={8}
-                      style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 10 }}
+                      style={{
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        fontSize: 10,
+                      }}
                     >
                       {formatDateHeader(msg.createdAt)}
                     </Text>
@@ -184,6 +210,80 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
         )}
       </ScrollArea>
 
+      {/* ── Backdrop to close menu ── */}
+      {menuOpen && (
+        <Box
+          onClick={() => setMenuOpen(false)}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 90,
+          }}
+        />
+      )}
+
+      {/* ── Menu Overlay ── */}
+      {menuOpen && (
+        <Box
+          style={{
+            position: "absolute",
+            bottom: 70,
+            left: 12,
+            zIndex: 100,
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
+          <UnstyledButton onClick={() => console.log("Payment clicked")}>
+            <Group gap={12} wrap="nowrap">
+              <Box
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: "50%",
+                  backgroundColor: "#965BCC",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+              >
+                <RiMoneyDollarCircleFill size={26} color="#fff" />
+              </Box>
+              <Text fw={600} size="xs">
+                Platba
+              </Text>
+            </Group>
+          </UnstyledButton>
+
+          <UnstyledButton onClick={() => setMenuOpen(false)}>
+            <Group gap={12} wrap="nowrap">
+              <Box
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: "50%",
+                  backgroundColor: "#E7E7E7",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+              >
+                <IoClose size={18} color="#AAA" />
+              </Box>
+              <Text fw={600} size="sm">
+                Close
+              </Text>
+            </Group>
+          </UnstyledButton>
+        </Box>
+      )}
+
       {/* ── Input bar ── */}
       <Box
         style={{
@@ -200,8 +300,15 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
         ) : (
           <Group gap={8} wrap="nowrap" align="center">
             {/* Plus button — decorative / future attachment */}
-            <ActionIcon variant="subtle" color="gray" size="lg" radius="xl" aria-label="Příloha" disabled>
-              <FaCirclePlus size={22} color="#A0A0A0" />
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size="lg"
+              radius="xl"
+              aria-label="Příloha"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <FaCirclePlus size={22} color={menuOpen ? "#1754D8" : "#A0A0A0"} />
             </ActionIcon>
 
             <TextInput
