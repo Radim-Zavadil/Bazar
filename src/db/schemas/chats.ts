@@ -39,6 +39,7 @@ export const payments = sqliteTable("payments", {
   amount: integer("amount").notNull(),
   method: text("method").notNull(), // 'card' or 'qr'
   status: text("status").notNull().default("completed"), // 'pending', 'completed', 'failed'
+  sessionId: text("session_id").unique(),
   createdAt: text("created_at").notNull().default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
 });
 

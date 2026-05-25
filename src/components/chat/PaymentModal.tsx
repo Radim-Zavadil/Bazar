@@ -1,9 +1,23 @@
 "use client";
 
-import { Box, Button, Divider, Group, Modal, Stack, Text, TextInput, UnstyledButton } from "@mantine/core";
+import {
+  Anchor,
+  Box,
+  Button,
+  Center,
+  Divider,
+  Group,
+  Image,
+  Loader,
+  Modal,
+  Stack,
+  Text,
+  TextInput,
+  UnstyledButton,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useState } from "react";
-import { FaCircleCheck, FaCreditCard, FaQrcode } from "react-icons/fa6";
+import { useEffect, useState } from "react";
+import { FaCircleCheck, FaCopy, FaCreditCard, FaQrcode } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 
 interface PaymentModalProps {
@@ -32,6 +46,7 @@ export function PaymentModal({
   const [method, setMethod] = useState<PaymentMethod>("card");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [qrSessionId, setQrSessionId] = useState<string | null>(null);
 
   const form = useForm({
     initialValues: {
@@ -49,17 +64,69 @@ export function PaymentModal({
     },
   });
 
+  // Poll for QR payment status
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (method === "qr" && qrSessionId && !success) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/payments?sessionId=${qrSessionId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === "completed") {
+              setSuccess(true);
+              onSuccess();
+            }
+          }
+        } catch (err) {
+          console.error("Polling error:", err);
+        }
+      }, 2000);
+    }
+    return () => clearInterval(interval);
+  }, [method, qrSessionId, success, onSuccess]);
+
+  // Generate QR session when switching to QR method
+  useEffect(() => {
+    if (method === "qr" && !qrSessionId && opened) {
+      const createQrSession = async () => {
+        try {
+          const res = await fetch("/api/payments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chatId,
+              listingId,
+              buyerName,
+              sellerName,
+              amount,
+              method: "qr",
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setQrSessionId(data.sessionId);
+          }
+        } catch (err) {
+          console.error("Failed to create QR session:", err);
+        }
+      };
+      createQrSession();
+    }
+  }, [method, qrSessionId, chatId, listingId, buyerName, sellerName, amount, opened]);
+
   const handleClose = () => {
     form.reset();
     setSuccess(false);
+    setQrSessionId(null);
     onClose();
   };
 
   const handlePayment = async () => {
-    if (method === "card") {
-      const validation = form.validate();
-      if (validation.hasErrors) return;
-    }
+    if (method === "qr") return;
+
+    const validation = form.validate();
+    if (validation.hasErrors) return;
 
     setLoading(true);
     try {
@@ -109,6 +176,14 @@ export function PaymentModal({
       </Modal>
     );
   }
+
+  // On localhost, we need the local IP for the phone to reach the computer.
+  // Using 172.16.2.127 as found in ipconfig. In production, this would be the real domain.
+  const baseUrl = window.location.hostname === "localhost" ? "http://172.16.2.127:3000" : window.location.origin;
+  const qrUrl = qrSessionId ? `${baseUrl}/cs/zaplatit/${qrSessionId}` : "";
+  const qrImage = qrUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrUrl)}`
+    : "";
 
   return (
     <Modal
@@ -240,6 +315,36 @@ export function PaymentModal({
                   QR kód
                 </Text>
               </Group>
+
+              {method === "qr" && (
+                <Stack align="center" gap="sm" mt={20}>
+                  {qrSessionId ? (
+                    <>
+                      <Box
+                        style={{
+                          padding: 12,
+                          border: "1px solid #EFEFEF",
+                          borderRadius: 12,
+                        }}
+                      >
+                        <Image src={qrImage} w={180} h={180} alt="QR Code" />
+                      </Box>
+                      <Stack gap={4} align="center">
+                        <Text size="xs" c="dimmed" ta="center" px="xl">
+                          Naskenujte QR kód telefonem nebo pro testování klikněte na odkaz níže:
+                        </Text>
+                        <Anchor href={`/cs/zaplatit/${qrSessionId}`} target="_blank" size="xs" fw={500}>
+                          Otevřít platbu v novém okně
+                        </Anchor>
+                      </Stack>
+                    </>
+                  ) : (
+                    <Center h={180}>
+                      <Loader size="sm" />
+                    </Center>
+                  )}
+                </Stack>
+              )}
             </Box>
           </Box>
 
@@ -256,16 +361,18 @@ export function PaymentModal({
           <Divider color="#EFEFEF" />
 
           {/* Pay Button */}
-          <Button
-            fullWidth
-            radius="md"
-            h={48}
-            style={{ background: "#1754D8" }}
-            onClick={handlePayment}
-            loading={loading}
-          >
-            Zaplatit
-          </Button>
+          {method === "card" && (
+            <Button
+              fullWidth
+              radius="md"
+              h={48}
+              style={{ background: "#1754D8" }}
+              onClick={handlePayment}
+              loading={loading}
+            >
+              Zaplatit
+            </Button>
+          )}
         </Stack>
       </Box>
     </Modal>

@@ -6,6 +6,23 @@ import { payments } from "@/db/schemas/chats";
 import { listings } from "@/db/schemas/listing.schema";
 import { auth } from "@/lib/auth";
 
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const sessionId = searchParams.get("sessionId");
+
+  if (!sessionId) {
+    return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
+  }
+
+  const [payment] = await db.select().from(payments).where(eq(payments.sessionId, sessionId)).limit(1);
+
+  if (!payment) {
+    return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ status: payment.status });
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
@@ -27,6 +44,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const isQr = method === "qr";
+    const sessionId = isQr ? `session_${Math.random().toString(36).substring(2, 15)}` : null;
+    const status = isQr ? "pending" : "completed";
+
     // 1. Create payment record
     const [payment] = await db
       .insert(payments)
@@ -37,12 +58,15 @@ export async function POST(request: NextRequest) {
         sellerName,
         amount,
         method,
-        status: "completed",
+        status,
+        sessionId,
       })
       .returning();
 
-    // 2. Update listing status to "Prodáno / předáno"
-    await db.update(listings).set({ status: "Prodáno / předáno" }).where(eq(listings.id, listingId));
+    // 2. Update listing status to "Prodáno / předáno" if completed
+    if (status === "completed") {
+      await db.update(listings).set({ status: "Prodáno / předáno" }).where(eq(listings.id, listingId));
+    }
 
     return NextResponse.json(payment, { status: 201 });
   } catch (error) {
