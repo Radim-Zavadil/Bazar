@@ -1,23 +1,13 @@
 "use client";
 
-import {
-  ActionIcon,
-  Box,
-  Button,
-  Divider,
-  Group,
-  ScrollArea,
-  Text,
-  TextInput,
-  Tooltip,
-  UnstyledButton,
-} from "@mantine/core";
+import { ActionIcon, Box, Button, Group, ScrollArea, Text, TextInput, Tooltip, UnstyledButton } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { HiPaperAirplane } from "react-icons/hi2";
 import { IoChevronBack, IoClose } from "react-icons/io5";
 import { RiMoneyDollarCircleFill } from "react-icons/ri";
 import type { ChatWithLastMessage } from "./ChatPanel";
+import { PaymentModal } from "./PaymentModal";
 
 interface Message {
   id: number;
@@ -41,6 +31,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [paymentOpened, setPaymentOpened] = useState(false);
   const viewport = useRef<HTMLDivElement>(null);
 
   // Load messages when chat changes
@@ -245,6 +236,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
                         <Button
                           fullWidth
                           radius="md"
+                          onClick={() => setPaymentOpened(true)}
                           style={{
                             background: "#185EDB",
                             color: "#fff",
@@ -421,6 +413,19 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
           </Group>
         )}
       </Box>
+
+      <PaymentModal
+        opened={paymentOpened}
+        onClose={() => setPaymentOpened(false)}
+        amount={chat.listingPrice || 0}
+        chatId={chat.id}
+        listingId={chat.listingId}
+        buyerName={chat.buyerName}
+        sellerName={chat.sellerName}
+        onSuccess={() => {
+          onMessagesUpdate();
+        }}
+      />
     </Box>
   );
 }
