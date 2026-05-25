@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { chats, messages } from "@/db/schemas/chats";
+import { listings } from "@/db/schemas/listing.schema";
 import { auth } from "@/lib/auth";
 
 // GET /api/chats?search=...
@@ -18,8 +19,19 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get("search")?.trim() ?? "";
 
   const userChats = await db
-    .select()
+    .select({
+      id: chats.id,
+      listingId: chats.listingId,
+      listingTitle: chats.listingTitle,
+      listingImage: chats.listingImage,
+      listingPrice: listings.price, // Get current price from listings table
+      buyerName: chats.buyerName,
+      sellerName: chats.sellerName,
+      createdAt: chats.createdAt,
+      updatedAt: chats.updatedAt,
+    })
     .from(chats)
+    .leftJoin(listings, eq(chats.listingId, listings.id))
     .where(or(eq(chats.buyerName, userName), eq(chats.sellerName, userName)))
     .orderBy(desc(chats.updatedAt));
 
@@ -44,7 +56,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/chats
-// Body: { listingId, listingTitle, listingImage, sellerName }
+// Body: { listingId, listingTitle, listingImage, listingPrice, sellerName }
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
@@ -52,10 +64,11 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { listingId, listingTitle, listingImage, sellerName } = body as {
+  const { listingId, listingTitle, listingImage, listingPrice, sellerName } = body as {
     listingId: number;
     listingTitle: string;
     listingImage: string | null;
+    listingPrice: number | null;
     sellerName: string;
   };
 
@@ -77,7 +90,13 @@ export async function POST(request: NextRequest) {
     .limit(1);
 
   if (existing.length > 0) {
-    return NextResponse.json(existing[0]);
+    const chat = existing[0];
+    // Update price if it's missing or different
+    if (chat.listingPrice !== listingPrice) {
+      await db.update(chats).set({ listingPrice }).where(eq(chats.id, chat.id));
+      chat.listingPrice = listingPrice;
+    }
+    return NextResponse.json(chat);
   }
 
   const [newChat] = await db
@@ -86,6 +105,7 @@ export async function POST(request: NextRequest) {
       listingId,
       listingTitle,
       listingImage: listingImage ?? null,
+      listingPrice: listingPrice ?? null,
       buyerName,
       sellerName,
     })

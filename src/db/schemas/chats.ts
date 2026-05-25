@@ -7,6 +7,7 @@ export const chats = sqliteTable("chats", {
   listingId: integer("listing_id").notNull(),
   listingTitle: text("listing_title").notNull(),
   listingImage: text("listing_image"), // optional URL
+  listingPrice: integer("listing_price"),
   buyerName: text("buyer_name").notNull(),
   sellerName: text("seller_name").notNull(),
   createdAt: text("created_at").notNull().default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
@@ -19,6 +20,7 @@ export const messages = sqliteTable("messages", {
   chatId: integer("chat_id").notNull(),
   senderName: text("sender_name").notNull(),
   content: text("content").notNull(),
+  type: text("type").notNull().default("text"),
   createdAt: text("created_at").notNull().default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
 });
 

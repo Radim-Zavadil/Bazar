@@ -8,6 +8,7 @@ interface StartChatButtonProps {
   listingId: number;
   listingTitle: string;
   listingImage?: string | null;
+  listingPrice?: number | null;
   sellerName: string;
   /** Name of the currently logged-in user */
   currentUser?: string;
@@ -23,6 +24,7 @@ export function StartChatButton({
   listingId,
   listingTitle,
   listingImage,
+  listingPrice,
   sellerName,
   currentUser = "Já",
   onSuccess,
@@ -41,6 +43,7 @@ export function StartChatButton({
           listingId,
           listingTitle,
           listingImage: listingImage ?? null,
+          listingPrice: listingPrice ?? null,
           buyerName: currentUser,
           sellerName,
         }),

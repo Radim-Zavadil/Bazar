@@ -1,6 +1,17 @@
 "use client";
 
-import { ActionIcon, Box, Divider, Group, ScrollArea, Text, TextInput, Tooltip, UnstyledButton } from "@mantine/core";
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Divider,
+  Group,
+  ScrollArea,
+  Text,
+  TextInput,
+  Tooltip,
+  UnstyledButton,
+} from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { HiPaperAirplane } from "react-icons/hi2";
@@ -13,6 +24,7 @@ interface Message {
   chatId: number;
   senderName: string;
   content: string;
+  type: string;
   createdAt: string;
 }
 
@@ -69,12 +81,35 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
       const res = await fetch(`/api/chats/${chat.id}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, type: "text" }),
       });
       if (!res.ok) return;
       const msg: Message = await res.json();
       setMessages((prev) => [...prev, msg]);
       setInput("");
+      onMessagesUpdate();
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handlePayment() {
+    if (sending || !isLoggedIn) return;
+    setSending(true);
+    setMenuOpen(false);
+    try {
+      const priceText = chat.listingPrice === null || chat.listingPrice === 0 ? "Zdarma" : `${chat.listingPrice} Kč`;
+      const res = await fetch(`/api/chats/${chat.id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: priceText,
+          type: "payment",
+        }),
+      });
+      if (!res.ok) return;
+      const msg: Message = await res.json();
+      setMessages((prev) => [...prev, msg]);
       onMessagesUpdate();
     } finally {
       setSending(false);
@@ -186,22 +221,57 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
                       marginBottom: 2,
                     }}
                   >
-                    <Box
-                      style={{
-                        background: isMe ? "#1754D8" : "#EFEFEF",
-                        color: isMe ? "#fff" : "#1A1A1A",
-                        // iOS-style sharp tail on the bottom corner
-                        borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                        padding: "9px 14px",
-                        maxWidth: "78%",
-                        wordBreak: "break-word",
-                        lineHeight: 1.45,
-                      }}
-                    >
-                      <Text size="sm" style={{ color: "inherit", lineHeight: 1.45 }}>
-                        {msg.content}
-                      </Text>
-                    </Box>
+                    {msg.type === "payment" ? (
+                      <Box
+                        style={{
+                          background: "#fff",
+                          border: "1px solid #EFEFEF",
+                          borderRadius: 16,
+                          padding: 20,
+                          width: "100%",
+                          maxWidth: 280,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        <Text size="xs" c="#8E8E93" fw={500} mb={4}>
+                          Platba
+                        </Text>
+                        <Text size="xl" fw={700} c="#000" mb={2}>
+                          {msg.content}
+                        </Text>
+                        <Text size="xs" c="#AEAEB2" mb={20}>
+                          Zaplatit teď
+                        </Text>
+                        <Button
+                          fullWidth
+                          radius="md"
+                          style={{
+                            background: "#185EDB",
+                            color: "#fff",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Zaplatit
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Box
+                        style={{
+                          background: isMe ? "#1754D8" : "#EFEFEF",
+                          color: isMe ? "#fff" : "#1A1A1A",
+                          // iOS-style sharp tail on the bottom corner
+                          borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                          padding: "9px 14px",
+                          maxWidth: "78%",
+                          wordBreak: "break-word",
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        <Text size="sm" style={{ color: "inherit", lineHeight: 1.45 }}>
+                          {msg.content}
+                        </Text>
+                      </Box>
+                    )}
                   </Box>
                 </Box>
               );
@@ -238,7 +308,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
             gap: 16,
           }}
         >
-          <UnstyledButton onClick={() => console.log("Payment clicked")}>
+          <UnstyledButton onClick={handlePayment}>
             <Group gap={12} wrap="nowrap">
               <Box
                 style={{

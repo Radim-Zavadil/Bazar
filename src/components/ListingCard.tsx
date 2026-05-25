@@ -62,6 +62,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           listingId: listing.id,
           listingTitle: listing.title,
           listingImage: listing.imageUrl,
+          listingPrice: listing.price,
           sellerName: listing.sellerName,
         }),
       });
@@ -196,10 +197,27 @@ export function ListingCard({ listing }: ListingCardProps) {
           </Text>
 
           <Group justify="space-between" align="flex-start" gap={8} wrap="nowrap">
-            <Text size="sm" style={{ color: "#111", fontWeight: 500, lineHeight: 1.35, flex: 1 }} lineClamp={2}>
+            <Text
+              size="sm"
+              style={{
+                color: "#111",
+                fontWeight: 500,
+                lineHeight: 1.35,
+                flex: 1,
+              }}
+              lineClamp={2}
+            >
               {listing.title}
             </Text>
-            <Text size="sm" style={{ color: "#111", fontWeight: 500, whiteSpace: "nowrap", flexShrink: 0 }}>
+            <Text
+              size="sm"
+              style={{
+                color: "#111",
+                fontWeight: 500,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
               {isFree ? "Zdarma" : `${listing.price} Kč`}
             </Text>
           </Group>

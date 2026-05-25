@@ -11,6 +11,7 @@ export interface ChatWithLastMessage {
   listingId: number;
   listingTitle: string;
   listingImage: string | null;
+  listingPrice: number | null;
   buyerName: string;
   sellerName: string;
   createdAt: string;
@@ -20,6 +21,7 @@ export interface ChatWithLastMessage {
     chatId: number;
     senderName: string;
     content: string;
+    type: string;
     createdAt: string;
   } | null;
 }
@@ -92,7 +94,11 @@ export function ChatPanel({
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffDays = Math.floor(diffMs / 86400000);
-    if (diffDays === 0) return d.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+    if (diffDays === 0)
+      return d.toLocaleTimeString("cs-CZ", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     if (diffDays === 1) return "Včera";
     if (diffDays < 7) return d.toLocaleDateString("cs-CZ", { weekday: "short" });
     return d.toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric" });
@@ -104,7 +110,14 @@ export function ChatPanel({
   const showWindow = activeChatId !== null;
 
   return (
-    <Box style={{ display: "flex", flexDirection: "row", height: "100%", overflow: "hidden" }}>
+    <Box
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        height: "100%",
+        overflow: "hidden",
+      }}
+    >
       {/* ── LEFT: Chat list ── */}
       {showList && (
         <Box
@@ -243,7 +256,15 @@ export function ChatPanel({
 
       {/* ── RIGHT: Chat window ── */}
       {showWindow && (
-        <Box style={{ flex: 1, display: "flex", flexDirection: "column", background: "#fff", minWidth: 0 }}>
+        <Box
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            background: "#fff",
+            minWidth: 0,
+          }}
+        >
           {activeChat ? (
             <ChatWindow
               chat={activeChat}
