@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Group,
+  Image,
   Modal,
   NativeSelect,
   NumberInput,
@@ -186,7 +187,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                       position: "relative",
                     }}
                   >
-                    <img
+                    <Image
                       src={previewUrl || listing.imageUrl || ""}
                       alt={listing.title}
                       style={{
@@ -259,7 +260,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                       onChange={(e) => handleFile(e.target.files?.[0])}
                     />
                     {previewUrl ? (
-                      <img
+                      <Image
                         src={previewUrl}
                         alt="Náhled"
                         style={{
