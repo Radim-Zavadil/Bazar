@@ -1,19 +1,16 @@
 "use client";
 
 import { Box, Group, Stack, Text, UnstyledButton } from "@mantine/core";
+import { useRouter } from "next/navigation";
 import { IoPersonOutline, IoWalletOutline } from "react-icons/io5";
 import { signOut } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 
 interface SettingsSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-export function SettingsSidebar({
-  activeTab,
-  onTabChange,
-}: SettingsSidebarProps) {
+export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps) {
   const menuItems = [
     {
       id: "profil",
@@ -28,14 +25,7 @@ export function SettingsSidebar({
   return (
     <Stack gap={0} h="100%" justify="space-between" py="xl" px="md">
       <Stack gap="xl">
-        <Text
-          fw={700}
-          size="lg"
-          c="#000"
-          px="sm"
-          mb="md"
-          style={{ whiteSpace: "nowrap" }}
-        >
+        <Text fw={700} size="lg" c="#000" px="sm" mb="md" style={{ whiteSpace: "nowrap" }}>
           Nastavení
         </Text>
         <Stack gap={4}>
@@ -62,11 +52,7 @@ export function SettingsSidebar({
                   >
                     {item.icon}
                   </Box>
-                  <Text
-                    fw={isActive ? 600 : 500}
-                    size="sm"
-                    c={isActive ? "#000" : "#6C6C6C"}
-                  >
+                  <Text fw={isActive ? 600 : 500} size="sm" c={isActive ? "#000" : "#6C6C6C"}>
                     {item.label}
                   </Text>
                 </Group>
