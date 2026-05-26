@@ -7,7 +7,7 @@ import { listings } from "@/db/schemas/listing.schema";
 import { auth } from "@/lib/auth";
 
 // GET /api/chats/[id]/messages
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

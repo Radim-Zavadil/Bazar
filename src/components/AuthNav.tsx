@@ -1,7 +1,9 @@
 "use client";
 
-import { Button, Group } from "@mantine/core";
+import { Avatar, Button, Group, Menu, UnstyledButton } from "@mantine/core";
 import { useState } from "react";
+import { IoLogOutOutline, IoSettingsOutline, IoWalletOutline } from "react-icons/io5";
+import { Link } from "@/i18n/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
 import { AuthModal } from "./AuthModal";
 
@@ -10,10 +12,37 @@ export function AuthNav() {
   const [modal, setModal] = useState<"login" | "register" | null>(null);
 
   if (session?.user) {
+    const initials = session.user.name
+      ? session.user.name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : "U";
+
     return (
-      <Button variant="subtle" color="gray" onClick={() => signOut()} style={{ fontWeight: 500 }}>
-        Odhlásit se
-      </Button>
+      <Menu shadow="md" width={200} position="bottom-end" radius="md" withinPortal>
+        <Menu.Target>
+          <UnstyledButton style={{ display: "flex", alignItems: "center" }}>
+            <Avatar src={session.user.image} alt={session.user.name} radius="xl" color="blue" size={36}>
+              {initials}
+            </Avatar>
+          </UnstyledButton>
+        </Menu.Target>
+
+        <Menu.Dropdown>
+          <Menu.Item component={Link} href="/nastaveni" leftSection={<IoSettingsOutline size={16} />}>
+            Nastavení
+          </Menu.Item>
+          <Menu.Item component={Link} href="/nastaveni?tab=platby" leftSection={<IoWalletOutline size={16} />}>
+            Platby
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Item color="red" leftSection={<IoLogOutOutline size={16} />} onClick={() => signOut()}>
+            Odhlásit se
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     );
   }
 
