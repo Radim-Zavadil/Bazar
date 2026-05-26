@@ -16,8 +16,9 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import confetti from "canvas-confetti";
 import { useEffect, useState } from "react";
-import { FaCircleCheck, FaCopy, FaCreditCard, FaQrcode } from "react-icons/fa6";
+import { FaCircleCheck, FaCreditCard, FaQrcode } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 
 interface PaymentModalProps {
@@ -47,6 +48,17 @@ export function PaymentModal({
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [qrSessionId, setQrSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (success) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        zIndex: 10000,
+      });
+    }
+  }, [success]);
 
   const form = useForm({
     initialValues: {

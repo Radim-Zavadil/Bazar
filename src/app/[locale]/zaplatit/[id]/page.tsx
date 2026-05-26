@@ -1,6 +1,7 @@
 "use client";
 
 import { Box, Button, Center, Image, Loader, Stack, Text } from "@mantine/core";
+import confetti from "canvas-confetti";
 import { use, useEffect, useState } from "react";
 import { FaRegCircleCheck } from "react-icons/fa6";
 
@@ -14,6 +15,17 @@ export default function ZaplatitPage({ params }: PaymentPageProps) {
   const [success, setSuccess] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (success) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        zIndex: 10000,
+      });
+    }
+  }, [success]);
 
   useEffect(() => {
     fetch(`/api/payments/${sessionId}`)
