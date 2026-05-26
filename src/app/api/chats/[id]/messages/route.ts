@@ -7,7 +7,7 @@ import { listings } from "@/db/schemas/listing.schema";
 import { auth } from "@/lib/auth";
 
 // GET /api/chats/[id]/messages
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,6 +17,22 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const chatId = Number(id);
   if (Number.isNaN(chatId)) {
     return NextResponse.json({ error: "Invalid chat id" }, { status: 400 });
+  }
+
+  // Check for expired reservations for this chat's listing
+  const [chat] = await db.select().from(chats).where(eq(chats.id, chatId)).limit(1);
+  if (chat) {
+    const [listing] = await db.select().from(listings).where(eq(listings.id, chat.listingId)).limit(1);
+    if (listing && listing.status === "Rezervováno" && listing.updatedAt) {
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      if (listing.updatedAt < twentyFourHoursAgo) {
+        await db
+          .update(listings)
+          .set({ status: "Prodáno / předáno", updatedAt: now })
+          .where(eq(listings.id, listing.id));
+      }
+    }
   }
 
   const rows = await db.select().from(messages).where(eq(messages.chatId, chatId)).orderBy(asc(messages.createdAt));
@@ -63,9 +79,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Pouze prodejce může poslat výzvu k platbě." }, { status: 403 });
     }
 
-    // 2. Cannot send if listing is already sold
-    if (listing.status === "Prodáno / předáno") {
-      return NextResponse.json({ error: "Inzerát je již prodán." }, { status: 400 });
+    // 2. Cannot send if listing is already sold or reserved
+    if (listing.status !== "Dostupné") {
+      return NextResponse.json(
+        {
+          error: `Inzerát je ve stavu: ${listing.status}. Platební výzvu nelze odeslat.`,
+        },
+        { status: 400 },
+      );
     }
 
     // 3. Only one active payment message for each listing

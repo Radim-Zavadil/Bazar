@@ -38,7 +38,10 @@ export async function createListing(input: CreateListingInput): Promise<CreateLi
   });
 
   if (!session?.user) {
-    return { success: false, error: "Pro vytvoření inzerátu se musíte přihlásit" };
+    return {
+      success: false,
+      error: "Pro vytvoření inzerátu se musíte přihlásit",
+    };
   }
 
   const data = parsed.data;
@@ -54,6 +57,7 @@ export async function createListing(input: CreateListingInput): Promise<CreateLi
     status: data.status,
     imageUrl: data.imageUrl ?? null,
     userId: session.user.id,
+    updatedAt: new Date(),
   });
 
   revalidatePath("/");
@@ -120,6 +124,7 @@ export async function updateListing(listingId: number, input: UpdateListingInput
       itemCondition: data.itemCondition,
       status: data.status,
       imageUrl: data.imageUrl ?? null,
+      updatedAt: new Date(),
     })
     .where(eq(listings.id, listingId));
 
