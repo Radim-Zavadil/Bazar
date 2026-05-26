@@ -12,6 +12,7 @@ export interface ChatWithLastMessage {
   listingTitle: string;
   listingImage: string | null;
   listingPrice: number | null;
+  listingStatus?: string;
   buyerName: string;
   sellerName: string;
   createdAt: string;

@@ -154,9 +154,26 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
           <IoChevronBack size={20} />
         </ActionIcon>
         <Box style={{ flex: 1, minWidth: 0 }}>
-          <Text fw={600} size="sm" truncate>
-            {chat.listingTitle}
-          </Text>
+          <Group gap={6} align="center" wrap="nowrap">
+            <Text fw={600} size="sm" truncate>
+              {chat.listingTitle}
+            </Text>
+            {chat.listingStatus && chat.listingStatus !== "Dostupné" && (
+              <Box
+                px={6}
+                py={1}
+                style={{
+                  background: chat.listingStatus === "Rezervováno" ? "#FFF9DB" : "#F1F3F5",
+                  borderRadius: 4,
+                  border: `1px solid ${chat.listingStatus === "Rezervováno" ? "#F59F00" : "#CED4DA"}`,
+                }}
+              >
+                <Text size="10px" fw={700} c={chat.listingStatus === "Rezervováno" ? "#F59F00" : "#495057"}>
+                  {chat.listingStatus.toUpperCase()}
+                </Text>
+              </Box>
+            )}
+          </Group>
           <Text size="xs" c="dimmed" truncate>
             {otherPerson}
           </Text>
@@ -222,6 +239,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
                           width: "100%",
                           maxWidth: 280,
                           boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                          opacity: chat.listingStatus !== "Dostupné" ? 0.8 : 1,
                         }}
                       >
                         <Text size="xs" c="#8E8E93" fw={500} mb={4}>
@@ -231,19 +249,20 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
                           {msg.content}
                         </Text>
                         <Text size="xs" c="#AEAEB2" mb={20}>
-                          Zaplatit teď
+                          {chat.listingStatus === "Dostupné" ? "Zaplatit teď" : "Zaplaceno"}
                         </Text>
                         <Button
                           fullWidth
                           radius="md"
-                          onClick={() => setPaymentOpened(true)}
+                          onClick={() => chat.listingStatus === "Dostupné" && setPaymentOpened(true)}
+                          disabled={chat.listingStatus !== "Dostupné"}
                           style={{
-                            background: "#185EDB",
+                            background: chat.listingStatus === "Dostupné" ? "#185EDB" : "#4CAF50",
                             color: "#fff",
                             fontWeight: 600,
                           }}
                         >
-                          Zaplatit
+                          {chat.listingStatus === "Dostupné" ? "Zaplatit" : "Zaplaceno"}
                         </Button>
                       </Box>
                     ) : (
@@ -300,27 +319,29 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
             gap: 16,
           }}
         >
-          <UnstyledButton onClick={handlePayment}>
-            <Group gap={12} wrap="nowrap">
-              <Box
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: "50%",
-                  backgroundColor: "#965BCC",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-              >
-                <RiMoneyDollarCircleFill size={26} color="#fff" />
-              </Box>
-              <Text fw={600} size="xs">
-                Platba
-              </Text>
-            </Group>
-          </UnstyledButton>
+          {chat.sellerName === currentUser && (
+            <UnstyledButton onClick={handlePayment}>
+              <Group gap={12} wrap="nowrap">
+                <Box
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: "50%",
+                    backgroundColor: "#965BCC",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <RiMoneyDollarCircleFill size={26} color="#fff" />
+                </Box>
+                <Text fw={600} size="xs">
+                  Platba
+                </Text>
+              </Group>
+            </UnstyledButton>
+          )}
 
           <UnstyledButton onClick={() => setMenuOpen(false)}>
             <Group gap={12} wrap="nowrap">

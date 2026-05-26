@@ -24,7 +24,9 @@ export async function GET(request: NextRequest) {
       listingId: chats.listingId,
       listingTitle: chats.listingTitle,
       listingImage: chats.listingImage,
-      listingPrice: listings.price, // Get current price from listings table
+      listingPrice: listings.price,
+      listingStatus: listings.status,
+      listingUpdatedAt: listings.updatedAt,
       buyerName: chats.buyerName,
       sellerName: chats.sellerName,
       createdAt: chats.createdAt,
@@ -35,9 +37,27 @@ export async function GET(request: NextRequest) {
     .where(or(eq(chats.buyerName, userName), eq(chats.sellerName, userName)))
     .orderBy(desc(chats.updatedAt));
 
+  // Check for expired reservations (24h delay)
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  const processedChats = await Promise.all(
+    userChats.map(async (chat) => {
+      if (chat.listingStatus === "Rezervováno" && chat.listingUpdatedAt && chat.listingUpdatedAt < twentyFourHoursAgo) {
+        // Transition to Sold
+        await db
+          .update(listings)
+          .set({ status: "Prodáno / předáno", updatedAt: now })
+          .where(eq(listings.id, chat.listingId));
+        chat.listingStatus = "Prodáno / předáno";
+      }
+      return chat;
+    }),
+  );
+
   const filtered = search
-    ? userChats.filter((c) => c.listingTitle.toLowerCase().includes(search.toLowerCase()))
-    : userChats;
+    ? processedChats.filter((c) => c.listingTitle.toLowerCase().includes(search.toLowerCase()))
+    : processedChats;
 
   // Attach last message to each chat
   const result = await Promise.all(

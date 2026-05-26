@@ -17,4 +17,5 @@ export const listings = sqliteTable("listings", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }),
 });

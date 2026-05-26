@@ -21,8 +21,14 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     // Update payment status
     await db.update(payments).set({ status: "completed" }).where(eq(payments.sessionId, id));
 
-    // Update listing status
-    await db.update(listings).set({ status: "Prodáno / předáno" }).where(eq(listings.id, payment.listingId));
+    // Update listing status to 'Rezervováno' (it will stay reserved for 24h)
+    await db
+      .update(listings)
+      .set({
+        status: "Rezervováno",
+        updatedAt: new Date(),
+      })
+      .where(eq(listings.id, payment.listingId));
 
     return NextResponse.json({ message: "Payment confirmed" });
   } catch (error) {
