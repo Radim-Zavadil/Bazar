@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Box, Divider, Group, Loader, Stack, Text } from "@mantine/core";
+import { Badge, Box, Group, Loader, Stack, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { IoWalletOutline } from "react-icons/io5";
 import { useSession } from "@/lib/auth-client";

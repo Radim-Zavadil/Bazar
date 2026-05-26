@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, Box, Button, Divider, Group, Stack, Text, TextInput, Transition, UnstyledButton } from "@mantine/core";
+import { Avatar, Box, Button, Divider, Stack, Text, TextInput, Transition } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { deleteUser, updateUser, useSession } from "@/lib/auth-client";
@@ -33,7 +33,7 @@ export function EditProfile() {
       form.resetDirty();
       setIsDirty(false);
     }
-  }, [session]);
+  }, [session, form.setValues, form.resetDirty]);
 
   // Track dirtiness including image
   useEffect(() => {

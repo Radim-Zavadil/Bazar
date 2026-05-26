@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Container, Grid } from "@mantine/core";
+import { Box, Grid } from "@mantine/core";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { EditProfile } from "@/components/settings/EditProfile";

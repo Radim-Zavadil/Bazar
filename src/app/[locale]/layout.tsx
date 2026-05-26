@@ -1,4 +1,4 @@
-import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from "@mantine/core";
+import { MantineProvider, mantineHtmlProps } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
