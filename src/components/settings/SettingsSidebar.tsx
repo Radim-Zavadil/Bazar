@@ -1,15 +1,19 @@
 "use client";
 
-import { Box, Divider, Group, Stack, Text, UnstyledButton } from "@mantine/core";
-import { IoLogOutOutline, IoPersonOutline, IoWalletOutline } from "react-icons/io5";
+import { Box, Group, Stack, Text, UnstyledButton } from "@mantine/core";
+import { IoPersonOutline, IoWalletOutline } from "react-icons/io5";
 import { signOut } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 interface SettingsSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps) {
+export function SettingsSidebar({
+  activeTab,
+  onTabChange,
+}: SettingsSidebarProps) {
   const menuItems = [
     {
       id: "profil",
@@ -19,10 +23,19 @@ export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps
     { id: "platby", label: "Platby", icon: <IoWalletOutline size={20} /> },
   ];
 
+  const router = useRouter();
+
   return (
     <Stack gap={0} h="100%" justify="space-between" py="xl" px="md">
       <Stack gap="xl">
-        <Text fw={700} size="lg" c="#000" px="sm" mb="md" style={{ whiteSpace: "nowrap" }}>
+        <Text
+          fw={700}
+          size="lg"
+          c="#000"
+          px="sm"
+          mb="md"
+          style={{ whiteSpace: "nowrap" }}
+        >
           Nastavení
         </Text>
         <Stack gap={4}>
@@ -49,7 +62,11 @@ export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps
                   >
                     {item.icon}
                   </Box>
-                  <Text fw={isActive ? 600 : 500} size="sm" c={isActive ? "#000" : "#6C6C6C"}>
+                  <Text
+                    fw={isActive ? 600 : 500}
+                    size="sm"
+                    c={isActive ? "#000" : "#6C6C6C"}
+                  >
                     {item.label}
                   </Text>
                 </Group>
@@ -63,7 +80,11 @@ export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps
         <UnstyledButton
           onClick={() =>
             signOut({
-              fetchOptions: { onSuccess: () => (window.location.href = "/") },
+              fetchOptions: {
+                onSuccess: () => {
+                  router.push("/");
+                },
+              },
             })
           }
           style={{

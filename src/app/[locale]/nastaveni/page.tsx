@@ -41,12 +41,21 @@ function SettingsContent() {
         minHeight: "calc(100vh - 90px)",
       }}
     >
-      <Grid gutter={0} style={{ minHeight: "calc(100vh - 90px)" }}>
-        <Grid.Col span={{ base: 12, md: 2.2 }} style={{ borderRight: "1px solid #E5E5E5" }}>
-          <SettingsSidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <Grid style={{ minHeight: "calc(100vh - 90px)" }}>
+        <Grid.Col
+          span={{ base: 12, md: 2 }}
+          style={{ borderRight: "1px solid #E5E5E5" }}
+        >
+          <SettingsSidebar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
         </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 9.8 }}>
-          <Box p={60} style={{ background: "white", minHeight: "100%", maxWidth: 1200 }}>
+        <Grid.Col span={{ base: 12, md: 10 }}>
+          <Box
+            p={60}
+            style={{ background: "white", minHeight: "100%", maxWidth: 1200 }}
+          >
             {activeTab === "profil" && <EditProfile />}
             {activeTab === "platby" && <PaymentsHistory />}
           </Box>
