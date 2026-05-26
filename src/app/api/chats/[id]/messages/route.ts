@@ -1,8 +1,9 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { chats, messages } from "@/db/schemas/chats";
+import { listings } from "@/db/schemas/listing.schema";
 import { auth } from "@/lib/auth";
 
 // GET /api/chats/[id]/messages
@@ -43,6 +44,41 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   if (!content) {
     return NextResponse.json({ error: "Content is required" }, { status: 400 });
+  }
+
+  // Fetch chat and listing info for validation
+  const [chat] = await db.select().from(chats).where(eq(chats.id, chatId)).limit(1);
+  if (!chat) {
+    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+  }
+
+  const [listing] = await db.select().from(listings).where(eq(listings.id, chat.listingId)).limit(1);
+  if (!listing) {
+    return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+  }
+
+  if (type === "payment") {
+    // 1. Only seller can post payment message
+    if (listing.userId !== session.user.id) {
+      return NextResponse.json({ error: "Pouze prodejce může poslat výzvu k platbě." }, { status: 403 });
+    }
+
+    // 2. Cannot send if listing is already sold
+    if (listing.status === "Prodáno / předáno") {
+      return NextResponse.json({ error: "Inzerát je již prodán." }, { status: 400 });
+    }
+
+    // 3. Only one active payment message for each listing
+    const [existingPaymentMsg] = await db
+      .select()
+      .from(messages)
+      .innerJoin(chats, eq(messages.chatId, chats.id))
+      .where(and(eq(chats.listingId, listing.id), eq(messages.type, "payment")))
+      .limit(1);
+
+    if (existingPaymentMsg) {
+      return NextResponse.json({ error: "Pro tento inzerát již existuje aktivní platební výzva." }, { status: 400 });
+    }
   }
 
   const senderName = session.user.name;
