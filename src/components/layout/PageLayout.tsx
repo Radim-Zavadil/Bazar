@@ -1,30 +1,16 @@
 "use client";
 
-import {
-  ActionIcon,
-  Anchor,
-  AppShell,
-  Box,
-  Container,
-  Group,
-  Stack,
-  Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Anchor, AppShell, Box, Container, Group, Stack, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Plus } from "lucide-react";
 import type { PropsWithChildren } from "react";
 import { createContext, useCallback, useContext, useState } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
-import {
-  IoChatbubbleEllipses,
-  IoChatbubbleEllipsesOutline,
-  IoFilter,
-  IoFilterOutline,
-} from "react-icons/io5";
+import { IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoFilter, IoFilterOutline } from "react-icons/io5";
 import { AuthNav } from "@/components/AuthNav";
 import { CreateListingModal } from "@/components/CreateListingModal";
-import { FilterDrawer } from "@/components/FilterDrawer";
 import { ChatDrawer } from "@/components/chat/ChatDrawer";
+import { FilterDrawer } from "@/components/FilterDrawer";
 import { PageLogo } from "@/components/layout/PageLogo";
 import { useSession } from "@/lib/auth-client";
 
@@ -45,8 +31,7 @@ export function useOpenChat() {
 }
 
 export function PageLayout({ children }: PropsWithChildren) {
-  const [modalOpened, { open: openModal, close: closeModal }] =
-    useDisclosure(false);
+  const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
   const { data: session } = useSession();
 
   const [chatOpen, setChatOpen] = useState(false);
@@ -70,27 +55,14 @@ export function PageLayout({ children }: PropsWithChildren) {
   return (
     <OpenChatContext.Provider value={{ openChat }}>
       <CreateListingModal opened={modalOpened} onClose={closeModal} />
-      <AppShell
-        header={{ height: HEADER_HEIGHT }}
-        padding="md"
-        withBorder={false}
-      >
-        <AppShell.Header
-          px="md"
-          bg="white"
-          style={{ borderBottom: "1px solid #E5E5E5" }}
-        >
+      <AppShell header={{ height: HEADER_HEIGHT }} padding="md" withBorder={false}>
+        <AppShell.Header px="md" bg="white" style={{ borderBottom: "1px solid #E5E5E5" }}>
           <Container size={BODY_MAX_WIDTH} h="100%">
             <Group h="100%" align="center" justify="space-between">
               <PageLogo />
               <Group gap="sm">
                 <AuthNav />
-                <Tooltip
-                  label="Přihlaste se nebo si vytvořte účet"
-                  disabled={isLoggedIn}
-                  withArrow
-                  position="bottom"
-                >
+                <Tooltip label="Přihlaste se nebo si vytvořte účet" disabled={isLoggedIn} withArrow position="bottom">
                   <ActionIcon
                     id="btn-create-listing"
                     onClick={isLoggedIn ? openModal : undefined}
@@ -109,11 +81,7 @@ export function PageLayout({ children }: PropsWithChildren) {
                   </ActionIcon>
                 </Tooltip>
 
-                <Tooltip
-                  label={filterOpen ? "Zavřít filtry" : "Filtry"}
-                  withArrow
-                  position="bottom"
-                >
+                <Tooltip label={filterOpen ? "Zavřít filtry" : "Filtry"} withArrow position="bottom">
                   <ActionIcon
                     variant={filterOpen ? "light" : "subtle"}
                     color="gray"
@@ -125,19 +93,11 @@ export function PageLayout({ children }: PropsWithChildren) {
                       if (chatOpen) setChatOpen(false);
                     }}
                   >
-                    {filterOpen ? (
-                      <IoFilter size={22} />
-                    ) : (
-                      <IoFilterOutline size={22} />
-                    )}
+                    {filterOpen ? <IoFilter size={22} /> : <IoFilterOutline size={22} />}
                   </ActionIcon>
                 </Tooltip>
 
-                <Tooltip
-                  label={chatOpen ? "Zavřít zprávy" : "Zprávy"}
-                  withArrow
-                  position="bottom"
-                >
+                <Tooltip label={chatOpen ? "Zavřít zprávy" : "Zprávy"} withArrow position="bottom">
                   <ActionIcon
                     variant={chatOpen ? "light" : "subtle"}
                     color="gray"
@@ -149,11 +109,7 @@ export function PageLayout({ children }: PropsWithChildren) {
                       if (filterOpen) setFilterOpen(false);
                     }}
                   >
-                    {chatOpen ? (
-                      <IoChatbubbleEllipses size={22} />
-                    ) : (
-                      <IoChatbubbleEllipsesOutline size={22} />
-                    )}
+                    {chatOpen ? <IoChatbubbleEllipses size={22} /> : <IoChatbubbleEllipsesOutline size={22} />}
                   </ActionIcon>
                 </Tooltip>
               </Group>
@@ -162,21 +118,11 @@ export function PageLayout({ children }: PropsWithChildren) {
         </AppShell.Header>
 
         <AppShell.Main>
-          <Container
-            size={BODY_MAX_WIDTH}
-            px="md"
-            style={{ minHeight: "calc(100vh - 250px)" }}
-          >
+          <Container size={BODY_MAX_WIDTH} px="md" style={{ minHeight: "calc(100vh - 250px)" }}>
             {children}
           </Container>
 
-          <Box
-            component="footer"
-            bg="white"
-            style={{ borderTop: "1px solid #E5E5E5" }}
-            py="xl"
-            mt="xl"
-          >
+          <Box component="footer" bg="white" style={{ borderTop: "1px solid #E5E5E5" }} py="xl" mt="xl">
             <Container size={BODY_MAX_WIDTH}>
               <Stack align="center" gap="md">
                 <Group gap="lg">
@@ -188,18 +134,10 @@ export function PageLayout({ children }: PropsWithChildren) {
                   </Anchor>
                 </Group>
                 <Group gap="md">
-                  <Anchor
-                    href="https://www.facebook.com/blogic"
-                    target="_blank"
-                    c="#575757"
-                  >
+                  <Anchor href="https://www.facebook.com/blogic" target="_blank" c="#575757">
                     <FaFacebook size={24} />
                   </Anchor>
-                  <Anchor
-                    href="https://www.instagram.com/blogic.cz/"
-                    target="_blank"
-                    c="#575757"
-                  >
+                  <Anchor href="https://www.instagram.com/blogic.cz/" target="_blank" c="#575757">
                     <FaInstagram size={24} />
                   </Anchor>
                 </Group>

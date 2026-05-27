@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  Box,
-  Button,
-  Group,
-  NumberInput,
-  Paper,
-  Select,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Box, Button, Group, NumberInput, Paper, Select, Stack, Text, Title } from "@mantine/core";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IoClose } from "react-icons/io5";
@@ -23,14 +13,7 @@ interface FilterDrawerProps {
 
 const NAV_HEIGHT = 90;
 
-const CATEGORIES = [
-  "Všechno",
-  "Oblečení",
-  "Nábytek",
-  "Dětské věci",
-  "Elektronika",
-  "Knihy",
-];
+const CATEGORIES = ["Všechno", "Oblečení", "Nábytek", "Dětské věci", "Elektronika", "Knihy"];
 
 export function FilterDrawer({ isOpen, onClose }: FilterDrawerProps) {
   const router = useRouter();
@@ -44,16 +27,8 @@ export function FilterDrawer({ isOpen, onClose }: FilterDrawerProps) {
   useEffect(() => {
     if (isOpen) {
       setCategory(searchParams.get("kategorie") || "Všechno");
-      setMinPrice(
-        searchParams.get("minPrice")
-          ? Number(searchParams.get("minPrice"))
-          : "",
-      );
-      setMaxPrice(
-        searchParams.get("maxPrice")
-          ? Number(searchParams.get("maxPrice"))
-          : "",
-      );
+      setMinPrice(searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : "");
+      setMaxPrice(searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : "");
     }
   }, [isOpen, searchParams]);
 
@@ -130,13 +105,7 @@ export function FilterDrawer({ isOpen, onClose }: FilterDrawerProps) {
             <Title order={3} fw={600}>
               Filtry
             </Title>
-            <Button
-              variant="subtle"
-              color="gray"
-              onClick={onClose}
-              p={0}
-              h="auto"
-            >
+            <Button variant="subtle" color="gray" onClick={onClose} p={0} h="auto">
               <IoClose size={24} />
             </Button>
           </Group>
@@ -193,24 +162,10 @@ export function FilterDrawer({ isOpen, onClose }: FilterDrawerProps) {
         </Stack>
 
         <Stack p="xl" gap="sm" style={{ borderTop: "1px solid #F1F1F1" }}>
-          <Button
-            fullWidth
-            radius={9}
-            h={48}
-            bg="#194AD1"
-            fw={500}
-            onClick={handleApply}
-          >
+          <Button fullWidth radius={9} h={48} bg="#194AD1" fw={500} onClick={handleApply}>
             Použít filtry
           </Button>
-          <Button
-            fullWidth
-            variant="subtle"
-            color="gray"
-            h={40}
-            onClick={handleClear}
-            c="#8A8A8A"
-          >
+          <Button fullWidth variant="subtle" color="gray" h={40} onClick={handleClear} c="#8A8A8A">
             Vymazat vše
           </Button>
         </Stack>
