@@ -1,8 +1,12 @@
 "use client";
 
 import {
+  ActionIcon,
+  Avatar,
   Box,
   Button,
+  Divider,
+  Flex,
   Group,
   Image,
   Modal,
@@ -14,14 +18,14 @@ import {
   Textarea,
   TextInput,
   Transition,
-  UnstyledButton,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { Pencil, Upload, X } from "lucide-react";
+import { Pencil, Trash2, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { SlTrash } from "react-icons/sl";
 import { deleteListing, updateListing } from "@/actions/listing.actions";
+import { useOpenChat } from "@/components/layout/PageLayout";
 import { useSession } from "@/lib/auth-client";
+import { StartChatButton } from "./chat/StartChatButton";
 import type { Listing } from "./ListingCard";
 import { ListingMap } from "./ListingMap";
 
@@ -43,6 +47,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { openChat } = useOpenChat();
 
   const isOwner = session?.user && listing.userId === session.user.id;
   const isAdmin = (session?.user as any)?.role === "Admin";
@@ -145,521 +150,401 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
     });
   };
 
-  return (
-    <>
-      <Modal
-        opened={opened}
-        onClose={onClose}
-        withCloseButton={false}
-        centered
-        size={540}
-        radius={15}
-        overlayProps={{ blur: 4, backgroundOpacity: 0.45 }}
-        styles={{
-          content: {
-            background: "#fff",
-            border: "1px solid #D5D5D5",
-            borderRadius: 15,
-            padding: 0,
-          },
-          body: { padding: 0 },
-        }}
-      >
-        {/* Header */}
-        <Group justify="space-between" align="center" px={24} py={20} style={{ borderBottom: "1px solid #EFEFEF" }}>
-          <Text fw={600} size="lg" c="#202020">
-            Detail inzerátu
-          </Text>
-          <Group gap={16}>
-            {isOwner && (
-              <UnstyledButton
-                onClick={() => setIsEditing((prev) => !prev)}
-                style={{ lineHeight: 0 }}
-                aria-label="Upravit inzerát"
-              >
-                <Pencil size={18} color={isEditing ? "#1753D7" : "#6C6C6C"} />
-              </UnstyledButton>
-            )}
-            {canDelete && (
-              <UnstyledButton
-                onClick={() => setShowDeleteConfirm(true)}
-                style={{ lineHeight: 0 }}
-                aria-label="Smazat inzerát"
-              >
-                <SlTrash size={18} color="#6C6C6C" />
-              </UnstyledButton>
-            )}
-            <UnstyledButton onClick={onClose} style={{ lineHeight: 0 }}>
-              <X size={20} color="#6C6C6C" />
-            </UnstyledButton>
-          </Group>
-        </Group>
+  const inputVariant = isEditing ? "default" : "unstyled";
 
-        {/* Body with opacity to indicate read-only (unless owner/creator) */}
-        <Box style={isOwner ? undefined : { opacity: 0.65, pointerEvents: "none" }}>
-          <form onSubmit={handleSubmit}>
-            <Stack gap={20} px={24} py={20}>
-              {/* Image display / upload */}
-              <Stack gap={6}>
-                <Group gap={4} wrap="nowrap">
-                  <Text size="sm" fw={500} c="#3A3A3A">
-                    Fotografie
-                  </Text>
-                  {isEditing && <Pencil size={12} color="#8A8A8A" />}
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      fullScreen
+      withCloseButton={false}
+      padding={0}
+      styles={{
+        content: { background: "#000" },
+        body: { height: "100%", padding: 0 },
+      }}
+    >
+      {/* Top-left controls */}
+      <Group
+        style={{
+          position: "absolute",
+          top: 20,
+          left: 20,
+          zIndex: 100,
+        }}
+        gap={12}
+      >
+        <ActionIcon
+          onClick={onClose}
+          variant="filled"
+          color="white"
+          radius="xl"
+          size="lg"
+          styles={{
+            root: {
+              backgroundColor: "#fff",
+              color: "#000",
+              "&:hover": {
+                backgroundColor: "#fff",
+                color: "#000",
+              },
+            },
+          }}
+          style={{
+            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+          }}
+        >
+          <X size={20} color="#000" />
+        </ActionIcon>
+        <Image src="/logo.png" alt="Logo" h={36} w="auto" fit="contain" />
+      </Group>
+
+      <Flex h="100vh" wrap="nowrap">
+        {/* Left Column - Product Image */}
+        <Flex
+          flex={1}
+          bg="#000"
+          align="center"
+          justify="center"
+          direction="column"
+          style={{
+            position: "relative",
+            height: "100%",
+            paddingBottom: "5%", // Slightly above center
+            overflow: "hidden",
+          }}
+        >
+          {!isEditing ? (
+            previewUrl || listing.imageUrl ? (
+              <>
+                <Box
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundImage: `url(${previewUrl || listing.imageUrl})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    filter: "blur(30px) brightness(0.6)",
+                    transform: "scale(1.1)",
+                    zIndex: 0,
+                  }}
+                />
+                <Image
+                  src={previewUrl || listing.imageUrl || undefined}
+                  alt={listing.title}
+                  fit="contain"
+                  style={{
+                    maxWidth: "90%",
+                    maxHeight: "85%",
+                    zIndex: 1,
+                  }}
+                />
+              </>
+            ) : (
+              <Flex
+                w="100%"
+                h="100%"
+                align="center"
+                justify="center"
+                bg="#f2f2f2"
+                style={{ zIndex: 1, position: "absolute", top: 0, left: 0 }}
+              >
+                <Text c="#888" fw={500} size="lg">
+                  Bez obrázku
+                </Text>
+              </Flex>
+            )
+          ) : (
+            <Box
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                border: `2px dashed ${dragOver ? "#1753D7" : "#444"}`,
+                borderRadius: 12,
+                background: dragOver ? "#111" : "#080808",
+                width: "80%",
+                height: "70%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "all 0.18s ease",
+                overflow: "hidden",
+              }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => handleFile(e.target.files?.[0])}
+              />
+              {previewUrl ? (
+                <Image src={previewUrl} alt="Náhled" fit="contain" style={{ width: "100%", height: "100%" }} />
+              ) : (
+                <Stack align="center" gap={12} c="#888">
+                  <Upload size={40} />
+                  <Text fw={500}>Přetáhněte obrázek nebo klikněte</Text>
+                </Stack>
+              )}
+            </Box>
+          )}
+        </Flex>
+
+        {/* Right Column - Product Details */}
+        <Box
+          w={480}
+          bg="#fff"
+          style={{
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            boxShadow: "-4px 0 20px rgba(0,0,0,0.1)",
+            zIndex: 10,
+          }}
+        >
+          {/* Scrollable Content */}
+          <Box style={{ flex: 1, overflowY: "auto" }}>
+            <form onSubmit={handleSubmit}>
+              <Stack gap={0} p={32}>
+                {/* Top Buttons (Edit/Delete) */}
+                <Group justify="flex-end" mb={16}>
+                  {isOwner && (
+                    <ActionIcon
+                      onClick={() => setIsEditing((prev) => !prev)}
+                      variant="subtle"
+                      color={isEditing ? "orange" : "gray"}
+                      size="lg"
+                      radius="md"
+                      styles={{
+                        root: {
+                          "&:hover": {
+                            color: "#f76707",
+                            backgroundColor: "#fff4e6",
+                          },
+                        },
+                      }}
+                    >
+                      <Pencil size={20} />
+                    </ActionIcon>
+                  )}
+                  {canDelete && (
+                    <ActionIcon
+                      onClick={() => setShowDeleteConfirm(true)}
+                      variant="subtle"
+                      color="gray"
+                      size="lg"
+                      radius="md"
+                    >
+                      <Trash2 size={20} />
+                    </ActionIcon>
+                  )}
                 </Group>
 
+                {/* Title */}
+                <TextInput
+                  variant={inputVariant}
+                  readOnly={!isEditing}
+                  placeholder="Název inzerátu"
+                  styles={{
+                    input: {
+                      fontSize: 24,
+                      fontWeight: 700,
+                      color: "#000",
+                      padding: isEditing ? undefined : 0,
+                      marginBottom: 4,
+                    },
+                  }}
+                  {...form.getInputProps("title")}
+                />
+
+                {/* Price */}
                 {!isEditing ? (
-                  listing.imageUrl || previewUrl ? (
-                    <Box
-                      style={{
-                        border: "1px solid #D5D5D5",
-                        borderRadius: 10,
-                        height: 130,
-                        overflow: "hidden",
-                        position: "relative",
-                      }}
-                    >
-                      <Image
-                        src={previewUrl || listing.imageUrl || ""}
-                        alt={listing.title}
-                        style={{
-                          width: "100%",
-                          height: 130,
-                          objectFit: "cover",
-                        }}
-                      />
-                    </Box>
-                  ) : (
-                    <Box
-                      style={{
-                        border: "2px dashed #D0D0D0",
-                        borderRadius: 10,
-                        background: "#FAFAFA",
-                        minHeight: 130,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Stack align="center" gap={8}>
-                        <Box
-                          style={{
-                            background: "#EFEFEF",
-                            borderRadius: 8,
-                            padding: 10,
-                            lineHeight: 0,
-                          }}
-                        >
-                          <Upload size={22} color="#6C6C6C" />
-                        </Box>
-                        <Text size="sm" fw={500} c="#555">
-                          Bez obrázku
-                        </Text>
-                      </Stack>
-                    </Box>
-                  )
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 600,
+                      color: "#000",
+                      marginBottom: 8,
+                    }}
+                  >
+                    {form.values.price === 0 || form.values.price === null ? "Zadarmo" : `${form.values.price} Kč`}
+                  </Text>
                 ) : (
-                  <Stack gap={6}>
-                    <Box
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        setDragOver(true);
-                      }}
-                      onDragLeave={() => setDragOver(false)}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                      style={{
-                        border: `2px dashed ${dragOver ? "#1753D7" : "#D0D0D0"}`,
-                        borderRadius: 10,
-                        background: dragOver ? "#F0F4FF" : "#FAFAFA",
-                        minHeight: 130,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        transition: "all 0.18s ease",
-                        overflow: "hidden",
-                        position: "relative",
-                      }}
-                    >
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={(e) => handleFile(e.target.files?.[0])}
+                  <NumberInput
+                    variant="default"
+                    label="Cena"
+                    suffix=" Kč"
+                    min={0}
+                    styles={{
+                      input: {
+                        fontSize: 16,
+                        fontWeight: 500,
+                        color: "#000",
+                        marginBottom: 8,
+                      },
+                    }}
+                    {...form.getInputProps("price")}
+                  />
+                )}
+
+                {/* Info Tags */}
+                <Stack gap={4} mb={24}>
+                  <Text size="sm" c="#65676B">
+                    {listing.category} • {listing.itemCondition} • {listing.status}
+                  </Text>
+                </Stack>
+
+                {/* Edit mode for Category, Condition, Status */}
+                {isEditing && (
+                  <Stack gap={16} mb={24}>
+                    <NativeSelect label="Kategorie" data={CATEGORIES} radius="md" {...form.getInputProps("category")} />
+                    <NativeSelect
+                      label="Stav produktu"
+                      data={CONDITIONS}
+                      radius="md"
+                      {...form.getInputProps("itemCondition")}
+                    />
+                    {isOwner && (
+                      <NativeSelect
+                        label="Stav inzerátu"
+                        data={["Dostupné", "Rezervováno", "Prodáno / předáno"]}
+                        radius="md"
+                        {...form.getInputProps("status")}
                       />
-                      {previewUrl ? (
-                        <Image
-                          src={previewUrl}
-                          alt="Náhled"
-                          style={{
-                            width: "100%",
-                            height: 130,
-                            objectFit: "cover",
-                            borderRadius: 8,
-                          }}
-                        />
-                      ) : (
-                        <Stack align="center" gap={8}>
-                          <Box
-                            style={{
-                              background: "#EFEFEF",
-                              borderRadius: 8,
-                              padding: 10,
-                              lineHeight: 0,
-                            }}
-                          >
-                            <Upload size={22} color="#6C6C6C" />
-                          </Box>
-                          <Text size="sm" fw={500} c="#555">
-                            Přetáhněte obrázek nebo klikněte pro nahrání
-                          </Text>
-                          <Text size="xs" c="#9A9A9A">
-                            PNG, JPG, WEBP – max. 5 MB
-                          </Text>
-                        </Stack>
-                      )}
-                    </Box>
-                    {previewUrl && (
-                      <Group justify="flex-end">
-                        <UnstyledButton onClick={() => setPreviewUrl(null)} style={{ fontSize: 12, color: "#9A9A9A" }}>
-                          Odebrat obrázek
-                        </UnstyledButton>
-                      </Group>
                     )}
                   </Stack>
                 )}
-              </Stack>
 
-              {/* Title & Price */}
-              <TextInput
-                label={
-                  <Group gap={4} wrap="nowrap">
-                    <Text size="sm" fw={500} c="#3A3A3A">
-                      Název
-                    </Text>
-                    {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                  </Group>
-                }
-                readOnly={!isEditing}
-                radius={8}
-                styles={{
-                  label: { marginBottom: 4 },
-                  input: {
-                    borderColor: "#D5D5D5",
-                    fontSize: 14,
-                    background: !isEditing ? "#FFF" : undefined,
-                  },
-                }}
-                {...form.getInputProps("title")}
-              />
-              <NumberInput
-                label={
-                  <Group gap={4} wrap="nowrap">
-                    <Text size="sm" fw={500} c="#3A3A3A">
-                      Cena (Kč)
-                    </Text>
-                    {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                  </Group>
-                }
-                readOnly={!isEditing}
-                radius={8}
-                description={form.values.price === 0 ? "Zadarmo" : undefined}
-                styles={{
-                  label: { marginBottom: 4 },
-                  input: {
-                    borderColor: "#D5D5D5",
-                    fontSize: 14,
-                    background: !isEditing ? "#FFF" : undefined,
-                  },
-                  description: { color: "#1754D8", fontWeight: 500 },
-                }}
-                {...form.getInputProps("price")}
-              />
-
-              {/* Category */}
-              <NativeSelect
-                label={
-                  <Group gap={4} wrap="nowrap">
-                    <Text size="sm" fw={500} c="#3A3A3A">
-                      Kategorie
-                    </Text>
-                    {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                  </Group>
-                }
-                disabled={!isEditing}
-                data={CATEGORIES}
-                radius={8}
-                styles={{
-                  label: { marginBottom: 4 },
-                  input: {
-                    borderColor: "#D5D5D5",
-                    fontSize: 14,
-                    background: !isEditing ? "#FFF" : undefined,
-                  },
-                }}
-                {...form.getInputProps("category")}
-              />
-
-              {/* Condition */}
-              <Stack gap={8}>
-                <Group gap={4} wrap="nowrap">
-                  <Text size="sm" fw={500} c="#3A3A3A">
-                    Stav produktu
+                {/* Description */}
+                <Box mb={24}>
+                  <Text fw={600} size="lg" mb={8} c="#000">
+                    Popis prodejce
                   </Text>
-                  {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                </Group>
-                <Group gap={12}>
-                  {CONDITIONS.map((cond) => {
-                    const isActive = form.values.itemCondition === cond;
-                    return (
-                      <UnstyledButton
-                        key={cond}
-                        onClick={isEditing ? () => form.setFieldValue("itemCondition", cond) : undefined}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          cursor: isEditing ? "pointer" : "default",
-                        }}
-                      >
-                        {/* Custom radio */}
-                        <Box
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: isActive ? "#202020" : "transparent",
-                            border: `2px solid ${isActive ? "#202020" : "#BBBBBB"}`,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "all 0.15s ease",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {isActive && (
-                            <Box
-                              style={{
-                                width: 7,
-                                height: 7,
-                                borderRadius: "50%",
-                                background: "white",
-                              }}
-                            />
-                          )}
-                        </Box>
-                        <Text size="sm" fw={500} c={isActive ? "#202020" : "#6C6C6C"}>
-                          {cond}
-                        </Text>
-                      </UnstyledButton>
-                    );
-                  })}
-                </Group>
-              </Stack>
+                  <Textarea
+                    variant={inputVariant}
+                    readOnly={!isEditing}
+                    autosize
+                    minRows={3}
+                    styles={{
+                      input: {
+                        fontSize: 15,
+                        color: "#1C1E21",
+                        padding: isEditing ? undefined : 0,
+                        lineHeight: 1.5,
+                      },
+                    }}
+                    {...form.getInputProps("description")}
+                  />
+                </Box>
 
-              {/* Status (Editable only for owner/creator) */}
-              {isOwner && (
-                <NativeSelect
-                  label={
-                    <Group gap={4} wrap="nowrap">
-                      <Text size="sm" fw={500} c="#3A3A3A">
-                        Stav inzerátu
-                      </Text>
-                      {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                    </Group>
-                  }
-                  disabled={!isEditing}
-                  data={["Dostupné", "Rezervováno", "Prodáno / předáno"]}
-                  radius={8}
-                  styles={{
-                    label: { marginBottom: 4 },
-                    input: {
-                      borderColor: "#D5D5D5",
-                      fontSize: 14,
-                      background: !isEditing ? "#FFF" : undefined,
-                    },
-                  }}
-                  {...form.getInputProps("status")}
-                />
-              )}
+                {/* Map & Address */}
+                <Box mb={32}>
+                  <TextInput
+                    variant={inputVariant}
+                    readOnly={!isEditing}
+                    placeholder="Adresa..."
+                    styles={{
+                      input: {
+                        fontSize: 14,
+                        color: "#65676B",
+                        padding: isEditing ? undefined : 0,
+                        marginBottom: 12,
+                      },
+                    }}
+                    {...form.getInputProps("address")}
+                  />
+                  {listing.lat !== null && listing.lng !== null && (
+                    <Box style={{ borderRadius: 12, overflow: "hidden" }}>
+                      <ListingMap lat={listing.lat} lng={listing.lng} />
+                    </Box>
+                  )}
+                </Box>
 
-              {/* Description */}
-              <Textarea
-                label={
-                  <Group gap={4} wrap="nowrap">
-                    <Text size="sm" fw={500} c="#3A3A3A">
-                      Popis
-                    </Text>
-                    {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                  </Group>
-                }
-                readOnly={!isEditing}
-                minRows={4}
-                autosize
-                radius={8}
-                styles={{
-                  label: { marginBottom: 4 },
-                  input: {
-                    borderColor: "#D5D5D5",
-                    fontSize: 14,
-                    resize: "none",
-                    background: !isEditing ? "#FFF" : undefined,
-                  },
-                }}
-                {...form.getInputProps("description")}
-              />
+                <Divider mb={24} />
 
-              {/* Address */}
-              <TextInput
-                label={
-                  <Group gap={4} wrap="nowrap">
-                    <Text size="sm" fw={500} c="#3A3A3A">
-                      Adresa
-                    </Text>
-                    {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                  </Group>
-                }
-                readOnly={!isEditing}
-                radius={8}
-                placeholder="Zadejte adresu..."
-                styles={{
-                  label: { marginBottom: 4 },
-                  input: {
-                    borderColor: "#D5D5D5",
-                    fontSize: 14,
-                    background: !isEditing ? "#FFF" : undefined,
-                  },
-                }}
-                {...form.getInputProps("address")}
-              />
-
-              {/* Contact Details */}
-              <Group grow wrap="nowrap" align="flex-start">
-                <TextInput
-                  label={
-                    <Group gap={4} wrap="nowrap">
-                      <Text size="sm" fw={500} c="#3A3A3A">
-                        Jméno kontaktu
-                      </Text>
-                      {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                    </Group>
-                  }
-                  readOnly={!isEditing}
-                  radius={8}
-                  styles={{
-                    label: { marginBottom: 4 },
-                    input: {
-                      borderColor: "#D5D5D5",
-                      fontSize: 14,
-                      background: !isEditing ? "#FFF" : undefined,
-                    },
-                  }}
-                  {...form.getInputProps("contactName")}
-                />
-                <TextInput
-                  label={
-                    <Group gap={4} wrap="nowrap">
-                      <Text size="sm" fw={500} c="#3A3A3A">
-                        E-mail
-                      </Text>
-                      {isEditing && <Pencil size={12} color="#8A8A8A" />}
-                    </Group>
-                  }
-                  readOnly={!isEditing}
-                  radius={8}
-                  styles={{
-                    label: { marginBottom: 4 },
-                    input: {
-                      borderColor: "#D5D5D5",
-                      fontSize: 14,
-                      background: !isEditing ? "#FFF" : undefined,
-                    },
-                  }}
-                  {...form.getInputProps("contactEmail")}
-                />
-              </Group>
-
-              {/* Map */}
-              {listing.lat !== null && listing.lng !== null && (
-                <Stack gap={8}>
-                  <Text size="sm" fw={500} c="#3A3A3A">
-                    Poloha na mapě
+                {/* Seller Info */}
+                <Box mb={24}>
+                  <Text fw={600} size="lg" mb={16} c="#000">
+                    Informace o prodejci
                   </Text>
-                  <ListingMap lat={listing.lat} lng={listing.lng} />
-                </Stack>
-              )}
+                  <Group gap={12}>
+                    <Avatar src={null} radius="xl" size={48} color="blue">
+                      {form.values.contactName.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Text fw={600} size="md">
+                      {form.values.contactName}
+                    </Text>
+                  </Group>
+                </Box>
 
-              {/* Submit changes button */}
-              {isEditing && (
-                <Button
-                  type="submit"
-                  fullWidth
-                  radius={9}
-                  h={42}
-                  loading={isPending}
-                  style={{
-                    background: "#1753D7",
-                    color: "white",
-                    fontWeight: 500,
-                    fontSize: 15,
-                    marginTop: 10,
-                  }}
-                >
-                  Uložit změny
-                </Button>
-              )}
-            </Stack>
-          </form>
-        </Box>
-      </Modal>
-
-      {/* Delete Confirmation Floating Bar */}
-      <Transition mounted={showDeleteConfirm} transition="slide-up" duration={400} timingFunction="ease">
-        {(styles) => (
-          <Box
-            style={{
-              ...styles,
-              position: "fixed",
-              bottom: 40,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "fit-content",
-              minWidth: 500,
-              zIndex: 3000,
-            }}
-          >
-            <Paper
-              shadow="lg"
-              p="md"
-              style={{
-                borderRadius: "18px",
-                border: "1px solid #E5E5E5",
-                background: "white",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 40,
-              }}
-            >
-              <Text c="#6C6C6C" fw={500}>
-                Opravdu chcete smazat tento inzerát?
-              </Text>
-              <Group gap="sm">
-                <Button variant="subtle" color="gray" onClick={() => setShowDeleteConfirm(false)} radius="md">
-                  Zrušit
-                </Button>
-                <Button onClick={handleDelete} loading={isPending} radius="md" bg="#FF4D4F" px="xl" fw={600}>
-                  Smazat
-                </Button>
-              </Group>
-            </Paper>
+                {/* Save button in edit mode */}
+                {isEditing && (
+                  <Button type="submit" fullWidth radius="md" h={44} loading={isPending} bg="#1753D7" mt={20}>
+                    Uložit změny
+                  </Button>
+                )}
+              </Stack>
+            </form>
           </Box>
-        )}
-      </Transition>
-    </>
+
+          {/* Bottom Actions */}
+          {!isOwner && (
+            <Box p={24} style={{ borderTop: "1px solid #EFEFEF" }}>
+              <StartChatButton
+                listingId={listing.id}
+                listingTitle={listing.title}
+                listingImage={listing.imageUrl}
+                listingPrice={listing.price}
+                sellerName={listing.sellerName}
+                currentUser={session?.user?.name ?? ""}
+                onSuccess={(chatId) => {
+                  onClose(); // Close modal and open chat
+                  openChat(chatId);
+                }}
+              />
+            </Box>
+          )}
+          {/* Delete Confirmation */}
+          <Transition mounted={showDeleteConfirm} transition="slide-up" duration={400}>
+            {(styles) => (
+              <Box
+                style={{
+                  ...styles,
+                  position: "fixed",
+                  bottom: 40,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  zIndex: 3000,
+                }}
+              >
+                <Paper shadow="lg" p="md" radius="lg" withBorder bg="white">
+                  <Group gap={40}>
+                    <Text fw={500}>Opravdu chcete smazat tento inzerát?</Text>
+                    <Group gap="sm">
+                      <Button variant="subtle" color="gray" onClick={() => setShowDeleteConfirm(false)}>
+                        Zrušit
+                      </Button>
+                      <Button onClick={handleDelete} loading={isPending} bg="#FF4D4F">
+                        Smazat
+                      </Button>
+                    </Group>
+                  </Group>
+                </Paper>
+              </Box>
+            )}
+          </Transition>
+        </Box>
+      </Flex>
+    </Modal>
   );
 }

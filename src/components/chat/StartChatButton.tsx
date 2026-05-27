@@ -2,7 +2,6 @@
 
 import { Button, Notification } from "@mantine/core";
 import { useState } from "react";
-import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 
 interface StartChatButtonProps {
   listingId: number;
@@ -13,6 +12,7 @@ interface StartChatButtonProps {
   /** Name of the currently logged-in user */
   currentUser?: string;
   onSuccess?: (chatId: number) => void;
+  fullWidth?: boolean;
 }
 
 /**
@@ -28,6 +28,7 @@ export function StartChatButton({
   sellerName,
   currentUser = "Já",
   onSuccess,
+  fullWidth = true,
 }: StartChatButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,12 +62,26 @@ export function StartChatButton({
   return (
     <>
       <Button
-        leftSection={<IoChatbubbleEllipsesOutline size={16} />}
-        variant="outline"
         loading={loading}
         onClick={handleClick}
+        fullWidth={fullWidth}
+        h={44}
+        radius="md"
+        bg="#1753D7"
+        styles={{
+          root: {
+            border: "none",
+            "&:hover": {
+              backgroundColor: "#144bb2",
+            },
+          },
+          label: {
+            fontWeight: 600,
+            fontSize: 15,
+          },
+        }}
       >
-        Napsat prodávajícímu
+        Napsat prodejci
       </Button>
       {error && (
         <Notification color="red" title="Chyba" onClose={() => setError(null)} mt="xs">
