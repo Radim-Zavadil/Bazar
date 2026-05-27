@@ -154,7 +154,11 @@ export default async function ListingsPage({ searchParams }: Props) {
           </Text>
         </Stack>
 
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 3 }} spacing="lg">
+        <SimpleGrid
+          key={`${kategorie}-${q}-${minPrice}-${maxPrice}`}
+          cols={{ base: 1, sm: 2, md: 3, lg: 3 }}
+          spacing="lg"
+        >
           {filtered.map((listing) => (
             <ListingCard key={listing.id} listing={listing} />
           ))}

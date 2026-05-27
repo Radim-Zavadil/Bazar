@@ -2,6 +2,7 @@
 
 import { Badge, Box, Card, Group, Stack, Text, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
@@ -79,7 +80,22 @@ export function ListingCard({ listing }: ListingCardProps) {
   if (isOwnListing) chatTooltip = "Toto je váš inzerát";
 
   return (
-    <>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.2, zIndex: 10 }}
+      transition={{
+        duration: 0.8,
+        delay: 0.5,
+        ease: [0, 0.71, 0.2, 1.01],
+        scale: {
+          type: "spring",
+          damping: 25,
+          stiffness: 300,
+          delay: 0,
+        },
+      }}
+    >
       <Card
         withBorder
         radius="lg"
@@ -229,6 +245,6 @@ export function ListingCard({ listing }: ListingCardProps) {
       </Card>
 
       <ViewListingModal opened={opened} onClose={close} listing={listing} />
-    </>
+    </motion.div>
   );
 }
