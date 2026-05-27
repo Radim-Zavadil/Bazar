@@ -1,17 +1,7 @@
 "use client";
 
 import { BarChart, LineChart } from "@mantine/charts";
-import {
-  Box,
-  Container,
-  Grid,
-  Group,
-  Paper,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Box, Container, Grid, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 
 type Props = {
   stats: any;
@@ -37,10 +27,7 @@ export function StatsDashboard({ stats }: Props) {
     color: PAYMENT_COLORS[index] ?? "#6E8596",
   }));
 
-  const totalPayments = paymentData.reduce(
-    (s: number, p: any) => s + p.value,
-    0,
-  );
+  const totalPayments = paymentData.reduce((s: number, p: any) => s + p.value, 0);
 
   const noBorderPaper: React.CSSProperties = {
     background: "transparent",
@@ -52,14 +39,7 @@ export function StatsDashboard({ stats }: Props) {
   return (
     <Container size="xl" py="xl">
       <Stack gap="xl">
-        <Title
-          order={2}
-          fw={700}
-          fz={15}
-          tt="uppercase"
-          c="dimmed"
-          style={{ letterSpacing: "0.15em" }}
-        >
+        <Title order={2} fw={700} fz={15} tt="uppercase" c="dimmed" style={{ letterSpacing: "0.15em" }}>
           Statistiky obchodu
         </Title>
 
@@ -68,13 +48,7 @@ export function StatsDashboard({ stats }: Props) {
           <Grid.Col span={{ base: 12, md: 8 }}>
             <Paper p="xl" radius="md" style={noBorderPaper}>
               <Stack gap="md">
-                <Text
-                  fw={600}
-                  size="sm"
-                  tt="uppercase"
-                  c="black"
-                  style={{ letterSpacing: "0.12em" }}
-                >
+                <Text fw={600} size="sm" tt="uppercase" c="black" style={{ letterSpacing: "0.12em" }}>
                   Nové registrace uživatelů
                 </Text>
                 <LineChart
@@ -92,22 +66,13 @@ export function StatsDashboard({ stats }: Props) {
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack
-              gap="xl"
-              style={{ height: "100%", justifyContent: "center" }}
-            >
+            <Stack gap="xl" style={{ height: "100%", justifyContent: "center" }}>
               {/* Celkem uživatelů — no border */}
               <Stack gap={2}>
                 <Text fw={500} size="2.6rem" lh={1} c="dark.8">
                   {Number(stats.sellerStats.total).toLocaleString("cs-CZ")}
                 </Text>
-                <Text
-                  c="dimmed"
-                  size="xs"
-                  tt="uppercase"
-                  fw={700}
-                  style={{ letterSpacing: "0.12em" }}
-                >
+                <Text c="dimmed" size="xs" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
                   Celkem uživatelů
                 </Text>
               </Stack>
@@ -118,13 +83,7 @@ export function StatsDashboard({ stats }: Props) {
                   <Text fw={500} size="2rem" lh={1} c="dark.8">
                     {Number(stats.sellerStats.sellers).toLocaleString("cs-CZ")}
                   </Text>
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    tt="uppercase"
-                    fw={700}
-                    style={{ letterSpacing: "0.12em" }}
-                  >
+                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
                     Prodejci
                   </Text>
                 </Stack>
@@ -132,13 +91,7 @@ export function StatsDashboard({ stats }: Props) {
                   <Text fw={500} size="2rem" lh={1} c="dark.8">
                     {Number(stats.sellerStats.buyers).toLocaleString("cs-CZ")}
                   </Text>
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    tt="uppercase"
-                    fw={700}
-                    style={{ letterSpacing: "0.12em" }}
-                  >
+                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
                     Kupující
                   </Text>
                 </Stack>
@@ -156,13 +109,7 @@ export function StatsDashboard({ stats }: Props) {
           {/* Aktivní inzeráty — WITH border */}
           <Paper p="xl" radius="md" withBorder>
             <Stack gap="md">
-              <Text
-                fw={600}
-                size="xs"
-                tt="uppercase"
-                c="black"
-                style={{ letterSpacing: "0.12em" }}
-              >
+              <Text fw={600} size="xs" tt="uppercase" c="black" style={{ letterSpacing: "0.12em" }}>
                 Aktivní inzeráty
               </Text>
               <LineChart
@@ -181,13 +128,7 @@ export function StatsDashboard({ stats }: Props) {
           {/* Kategorie inzerátů — WITH border, BarChart with per-category colours */}
           <Paper p="xl" radius="md" withBorder>
             <Stack gap="md">
-              <Text
-                fw={600}
-                size="xs"
-                tt="uppercase"
-                c="black"
-                style={{ letterSpacing: "0.12em" }}
-              >
+              <Text fw={600} size="xs" tt="uppercase" c="black" style={{ letterSpacing: "0.12em" }}>
                 Kategorie inzerátů
               </Text>
               <BarChart
@@ -209,21 +150,12 @@ export function StatsDashboard({ stats }: Props) {
           {/* Platební metody — WITH border */}
           <Paper p="xl" radius="md" withBorder>
             <Stack gap="md">
-              <Text
-                fw={600}
-                size="xs"
-                tt="uppercase"
-                c="black"
-                style={{ letterSpacing: "0.12em" }}
-              >
+              <Text fw={600} size="xs" tt="uppercase" c="black" style={{ letterSpacing: "0.12em" }}>
                 Platební metody
               </Text>
 
               {/* colour strip */}
-              <Group
-                gap={0}
-                style={{ borderRadius: 3, overflow: "hidden", height: 14 }}
-              >
+              <Group gap={0} style={{ borderRadius: 3, overflow: "hidden", height: 14 }}>
                 {paymentData.map((p: any) => (
                   <Box
                     key={p.name}
