@@ -18,10 +18,25 @@ const createListingSchema = z.object({
   imageUrl: z.string().nullable().optional(),
   contactName: z.string().min(1, "Jméno kontaktu je povinné"),
   contactEmail: z.string().email("Neplatný e-mail").or(z.string().length(0)).nullable().optional(),
+  address: z.string().optional().nullable(),
 });
 
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type CreateListingResult = { success: true } | { success: false; error: string };
+
+async function geocode(address: string) {
+  try {
+    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(address)}`);
+    const data = await res.json();
+    if (data.features && data.features.length > 0) {
+      const [lng, lat] = data.features[0].geometry.coordinates;
+      return { lng, lat };
+    }
+  } catch (error) {
+    console.error("Geocoding error:", error);
+  }
+  return null;
+}
 
 export async function createListing(input: CreateListingInput): Promise<CreateListingResult> {
   const parsed = createListingSchema.safeParse(input);
@@ -45,6 +60,16 @@ export async function createListing(input: CreateListingInput): Promise<CreateLi
   }
 
   const data = parsed.data;
+  let lat = null;
+  let lng = null;
+
+  if (data.address) {
+    const coords = await geocode(data.address);
+    if (coords) {
+      lat = coords.lat;
+      lng = coords.lng;
+    }
+  }
 
   await db.insert(listings).values({
     title: data.title,
@@ -56,6 +81,9 @@ export async function createListing(input: CreateListingInput): Promise<CreateLi
     itemCondition: data.itemCondition,
     status: data.status,
     imageUrl: data.imageUrl ?? null,
+    address: data.address ?? null,
+    lat,
+    lng,
     userId: session.user.id,
     updatedAt: new Date(),
   });
@@ -76,6 +104,7 @@ const updateListingSchema = z.object({
   imageUrl: z.string().nullable().optional(),
   contactName: z.string().min(1, "Jméno kontaktu je povinné"),
   contactEmail: z.string().email("Neplatný e-mail").or(z.string().length(0)).nullable().optional(),
+  address: z.string().optional().nullable(),
 });
 
 export type UpdateListingInput = z.infer<typeof updateListingSchema>;
@@ -112,6 +141,20 @@ export async function updateListing(listingId: number, input: UpdateListingInput
     return { success: false, error: "Tento inzerát vám nepatří" };
   }
 
+  let lat = existingListing.lat;
+  let lng = existingListing.lng;
+
+  if (data.address && data.address !== existingListing.address) {
+    const coords = await geocode(data.address);
+    if (coords) {
+      lat = coords.lat;
+      lng = coords.lng;
+    }
+  } else if (!data.address) {
+    lat = null;
+    lng = null;
+  }
+
   await db
     .update(listings)
     .set({
@@ -124,6 +167,9 @@ export async function updateListing(listingId: number, input: UpdateListingInput
       itemCondition: data.itemCondition,
       status: data.status,
       imageUrl: data.imageUrl ?? null,
+      address: data.address ?? null,
+      lat,
+      lng,
       updatedAt: new Date(),
     })
     .where(eq(listings.id, listingId));

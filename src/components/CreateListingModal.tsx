@@ -44,6 +44,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
       category: "Ostatní",
       itemCondition: "Nové" as Condition,
       description: "",
+      address: "",
       contactName: "",
       contactEmail: "",
     },
@@ -110,6 +111,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
         itemCondition: values.itemCondition,
         status: "Dostupné",
         imageUrl: previewUrl,
+        address: values.address,
         contactName: values.contactName,
         contactEmail: values.contactEmail,
       });
@@ -238,7 +240,12 @@ export function CreateListingModal({ opened, onClose }: Props) {
             required
             radius={8}
             styles={{
-              label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+              label: {
+                fontWeight: 500,
+                fontSize: 14,
+                color: "#3A3A3A",
+                marginBottom: 4,
+              },
               input: { borderColor: "#D5D5D5", fontSize: 14 },
             }}
             {...form.getInputProps("title")}
@@ -250,7 +257,12 @@ export function CreateListingModal({ opened, onClose }: Props) {
             radius={8}
             description={form.values.price === 0 ? "Zadarmo" : undefined}
             styles={{
-              label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+              label: {
+                fontWeight: 500,
+                fontSize: 14,
+                color: "#3A3A3A",
+                marginBottom: 4,
+              },
               input: { borderColor: "#D5D5D5", fontSize: 14 },
               description: { color: "#1754D8", fontWeight: 500 },
             }}
@@ -263,7 +275,12 @@ export function CreateListingModal({ opened, onClose }: Props) {
             data={CATEGORIES}
             radius={8}
             styles={{
-              label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+              label: {
+                fontWeight: 500,
+                fontSize: 14,
+                color: "#3A3A3A",
+                marginBottom: 4,
+              },
               input: { borderColor: "#D5D5D5", fontSize: 14 },
             }}
             {...form.getInputProps("category")}
@@ -331,10 +348,36 @@ export function CreateListingModal({ opened, onClose }: Props) {
             autosize
             radius={8}
             styles={{
-              label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
-              input: { borderColor: "#D5D5D5", fontSize: 14, resize: "vertical" },
+              label: {
+                fontWeight: 500,
+                fontSize: 14,
+                color: "#3A3A3A",
+                marginBottom: 4,
+              },
+              input: {
+                borderColor: "#D5D5D5",
+                fontSize: 14,
+                resize: "vertical",
+              },
             }}
             {...form.getInputProps("description")}
+          />
+
+          {/* Address */}
+          <TextInput
+            label="Adresa"
+            placeholder="Zadejte adresu (např. Václavské náměstí, Praha)"
+            radius={8}
+            styles={{
+              label: {
+                fontWeight: 500,
+                fontSize: 14,
+                color: "#3A3A3A",
+                marginBottom: 4,
+              },
+              input: { borderColor: "#D5D5D5", fontSize: 14 },
+            }}
+            {...form.getInputProps("address")}
           />
 
           {/* Contact Details */}
@@ -345,7 +388,12 @@ export function CreateListingModal({ opened, onClose }: Props) {
               required
               radius={8}
               styles={{
-                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+                label: {
+                  fontWeight: 500,
+                  fontSize: 14,
+                  color: "#3A3A3A",
+                  marginBottom: 4,
+                },
                 input: { borderColor: "#D5D5D5", fontSize: 14 },
               }}
               {...form.getInputProps("contactName")}
@@ -355,7 +403,12 @@ export function CreateListingModal({ opened, onClose }: Props) {
               placeholder="Zadejte e-mail"
               radius={8}
               styles={{
-                label: { fontWeight: 500, fontSize: 14, color: "#3A3A3A", marginBottom: 4 },
+                label: {
+                  fontWeight: 500,
+                  fontSize: 14,
+                  color: "#3A3A3A",
+                  marginBottom: 4,
+                },
                 input: { borderColor: "#D5D5D5", fontSize: 14 },
               }}
               {...form.getInputProps("contactEmail")}

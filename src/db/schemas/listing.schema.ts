@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { user } from "./auth";
 
 export const listings = sqliteTable("listings", {
@@ -13,6 +13,9 @@ export const listings = sqliteTable("listings", {
   status: text("status").notNull(), // "Dostupné", "Rezervováno", "Prodáno / předáno"
   itemCondition: text("item_condition").notNull().default("Nové"), // "Nové", "Použité"
   imageUrl: text("image_url"),
+  address: text("address"),
+  lat: real("lat"),
+  lng: real("lng"),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
