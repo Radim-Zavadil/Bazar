@@ -133,3 +133,38 @@ export async function updateListing(listingId: number, input: UpdateListingInput
 
   return { success: true };
 }
+
+export async function deleteListing(listingId: number): Promise<CreateListingResult> {
+  const activeSession = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!activeSession?.user) {
+    return { success: false, error: "Nejste přihlášen(a)" };
+  }
+
+  const existingListing = await db.query.listings.findFirst({
+    where: eq(listings.id, listingId),
+  });
+
+  if (!existingListing) {
+    return { success: false, error: "Inzerát nebyl nalezen" };
+  }
+
+  const isOwner = existingListing.userId === activeSession.user.id;
+  const isAdmin = (activeSession.user as any).role === "Admin";
+
+  if (!isOwner && !isAdmin) {
+    return {
+      success: false,
+      error: "Nemáte oprávnění ke smazání tohoto inzerátu",
+    };
+  }
+
+  await db.delete(listings).where(eq(listings.id, listingId));
+
+  revalidatePath("/");
+  revalidatePath("/inzeraty");
+
+  return { success: true };
+}
