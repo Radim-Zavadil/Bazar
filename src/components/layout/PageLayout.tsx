@@ -6,10 +6,11 @@ import { Plus } from "lucide-react";
 import type { PropsWithChildren } from "react";
 import { createContext, useCallback, useContext, useState } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
-import { IoChatbubbleEllipses, IoChatbubbleEllipsesOutline } from "react-icons/io5";
+import { IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoFilter, IoFilterOutline } from "react-icons/io5";
 import { AuthNav } from "@/components/AuthNav";
 import { CreateListingModal } from "@/components/CreateListingModal";
 import { ChatDrawer } from "@/components/chat/ChatDrawer";
+import { FilterDrawer } from "@/components/FilterDrawer";
 import { PageLogo } from "@/components/layout/PageLogo";
 import { useSession } from "@/lib/auth-client";
 
@@ -34,6 +35,7 @@ export function PageLayout({ children }: PropsWithChildren) {
   const { data: session } = useSession();
 
   const [chatOpen, setChatOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [pendingChatId, setPendingChatId] = useState<number | null>(null);
 
   const isLoggedIn = !!session?.user;
@@ -79,6 +81,22 @@ export function PageLayout({ children }: PropsWithChildren) {
                   </ActionIcon>
                 </Tooltip>
 
+                <Tooltip label={filterOpen ? "Zavřít filtry" : "Filtry"} withArrow position="bottom">
+                  <ActionIcon
+                    variant={filterOpen ? "light" : "subtle"}
+                    color="gray"
+                    size="lg"
+                    radius="md"
+                    aria-label="Filtry"
+                    onClick={() => {
+                      setFilterOpen((v) => !v);
+                      if (chatOpen) setChatOpen(false);
+                    }}
+                  >
+                    {filterOpen ? <IoFilter size={22} /> : <IoFilterOutline size={22} />}
+                  </ActionIcon>
+                </Tooltip>
+
                 <Tooltip label={chatOpen ? "Zavřít zprávy" : "Zprávy"} withArrow position="bottom">
                   <ActionIcon
                     variant={chatOpen ? "light" : "subtle"}
@@ -86,7 +104,10 @@ export function PageLayout({ children }: PropsWithChildren) {
                     size="lg"
                     radius="md"
                     aria-label="Zprávy"
-                    onClick={() => setChatOpen((v) => !v)}
+                    onClick={() => {
+                      setChatOpen((v) => !v);
+                      if (filterOpen) setFilterOpen(false);
+                    }}
                   >
                     {chatOpen ? <IoChatbubbleEllipses size={22} /> : <IoChatbubbleEllipsesOutline size={22} />}
                   </ActionIcon>
@@ -125,6 +146,8 @@ export function PageLayout({ children }: PropsWithChildren) {
           </Box>
         </AppShell.Main>
       </AppShell>
+
+      <FilterDrawer isOpen={filterOpen} onClose={() => setFilterOpen(false)} />
 
       {/* ChatDrawer outside AppShell so it overlays the full page */}
       <ChatDrawer

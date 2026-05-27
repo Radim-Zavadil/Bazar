@@ -8,11 +8,16 @@ import { user } from "../../../db/schemas/auth";
 export const dynamic = "force-dynamic";
 
 type Props = {
-  searchParams: Promise<{ kategorie?: string; q?: string }>;
+  searchParams: Promise<{
+    kategorie?: string;
+    q?: string;
+    minPrice?: string;
+    maxPrice?: string;
+  }>;
 };
 
 export default async function ListingsPage({ searchParams }: Props) {
-  const { kategorie, q } = await searchParams;
+  const { kategorie, q, minPrice, maxPrice } = await searchParams;
 
   // Zkontrolujeme, zda jsou v databázi nějaké inzeráty
   let allListings = await db.select().from(listings);
@@ -109,7 +114,8 @@ export default async function ListingsPage({ searchParams }: Props) {
   }
 
   // Filtrujeme podle kategorie a/nebo hledaného výrazu
-  let filtered = kategorie ? allListings.filter((l) => l.category === kategorie) : allListings;
+  let filtered =
+    kategorie && kategorie !== "Všechno" ? allListings.filter((l) => l.category === kategorie) : allListings;
 
   if (q) {
     const lower = q.toLowerCase();
@@ -118,18 +124,32 @@ export default async function ListingsPage({ searchParams }: Props) {
     );
   }
 
+  if (minPrice) {
+    const min = Number(minPrice);
+    if (!Number.isNaN(min)) {
+      filtered = filtered.filter((l) => (l.price ?? 0) >= min);
+    }
+  }
+
+  if (maxPrice) {
+    const max = Number(maxPrice);
+    if (!Number.isNaN(max)) {
+      filtered = filtered.filter((l) => l.price !== null && l.price <= max);
+    }
+  }
+
   return (
     <Container size="lg" py={40}>
       <Stack gap="xl">
         <Stack gap="xs">
           <Title order={1} size="h2" c="#202020">
-            {kategorie ? kategorie : q ? `Výsledky pro „${q}"` : "Aktuální inzeráty"}
+            {kategorie && kategorie !== "Všechno" ? kategorie : q ? `Výsledky pro „${q}"` : "Aktuální inzeráty"}
           </Title>
           <Text c="#6C6C6C">
-            {kategorie
+            {kategorie && kategorie !== "Všechno"
               ? `Inzeráty v kategorii „${kategorie}".`
               : q
-                ? `Nalezeno ${filtered.length} inzerátů.`
+                ? `Nalezeno ${filtered.length} inzerátů pro „${q}".`
                 : "Prohlédněte si nejnovější věci v našem bazaru."}
           </Text>
         </Stack>
