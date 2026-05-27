@@ -8,11 +8,16 @@ import { user } from "../../../db/schemas/auth";
 export const dynamic = "force-dynamic";
 
 type Props = {
-  searchParams: Promise<{ kategorie?: string; q?: string }>;
+  searchParams: Promise<{
+    kategorie?: string;
+    q?: string;
+    minPrice?: string;
+    maxPrice?: string;
+  }>;
 };
 
 export default async function ListingsPage({ searchParams }: Props) {
-  const { kategorie, q } = await searchParams;
+  const { kategorie, q, minPrice, maxPrice } = await searchParams;
 
   // Zkontrolujeme, zda jsou v databázi nějaké inzeráty
   let allListings = await db.select().from(listings);
@@ -49,7 +54,8 @@ export default async function ListingsPage({ searchParams }: Props) {
     await db.insert(listings).values([
       {
         title: "Zimní bunda North Face",
-        description: "Velmi teplá zimní bunda, velikost L. Nošená jednu sezónu, ve výborném stavu.",
+        description:
+          "Velmi teplá zimní bunda, velikost L. Nošená jednu sezónu, ve výborném stavu.",
         sellerName: "Jan Novák",
         contactEmail: "jan.novak@example.com",
         price: 800,
@@ -60,7 +66,8 @@ export default async function ListingsPage({ searchParams }: Props) {
       },
       {
         title: "Dřevěná jídelní židle",
-        description: "Starší, ale pevná dřevěná židle. Stačí trochu přebrousit a nalakovat.",
+        description:
+          "Starší, ale pevná dřevěná židle. Stačí trochu přebrousit a nalakovat.",
         sellerName: "Petra Malá",
         contactEmail: "petra.mala@example.com",
         price: null, // Zdarma
@@ -71,7 +78,8 @@ export default async function ListingsPage({ searchParams }: Props) {
       },
       {
         title: "Lego Duplo krabice",
-        description: "Velká krabice plná kostek Lego Duplo. Chybí původní obal, ale kostek je tam hodně.",
+        description:
+          "Velká krabice plná kostek Lego Duplo. Chybí původní obal, ale kostek je tam hodně.",
         sellerName: "Tomáš Dvořák",
         contactEmail: "tomas.dvorak@example.com",
         price: 450,
@@ -82,7 +90,8 @@ export default async function ListingsPage({ searchParams }: Props) {
       },
       {
         title: "Monitor Dell 24 palců",
-        description: "Plně funkční Full HD monitor Dell. Má HDMI i DisplayPort. Bez poškození.",
+        description:
+          "Plně funkční Full HD monitor Dell. Má HDMI i DisplayPort. Bez poškození.",
         sellerName: "Karel Svoboda",
         contactEmail: "karel.svoboda@example.com",
         price: 1200,
@@ -93,7 +102,8 @@ export default async function ListingsPage({ searchParams }: Props) {
       },
       {
         title: "Série knih Harry Potter (1-7)",
-        description: "Kompletní série knih o Harrym Potterovi v pevných deskách. Přečteno jen jednou.",
+        description:
+          "Kompletní série knih o Harrym Potterovi v pevných deskách. Přečteno jen jednou.",
         sellerName: "Lucie Černá",
         contactEmail: "lucie.cerna@example.com",
         price: 1500,
@@ -109,13 +119,32 @@ export default async function ListingsPage({ searchParams }: Props) {
   }
 
   // Filtrujeme podle kategorie a/nebo hledaného výrazu
-  let filtered = kategorie ? allListings.filter((l) => l.category === kategorie) : allListings;
+  let filtered =
+    kategorie && kategorie !== "Všechno"
+      ? allListings.filter((l) => l.category === kategorie)
+      : allListings;
 
   if (q) {
     const lower = q.toLowerCase();
     filtered = filtered.filter(
-      (l) => l.title.toLowerCase().includes(lower) || (l.description ?? "").toLowerCase().includes(lower),
+      (l) =>
+        l.title.toLowerCase().includes(lower) ||
+        (l.description ?? "").toLowerCase().includes(lower),
     );
+  }
+
+  if (minPrice) {
+    const min = Number(minPrice);
+    if (!isNaN(min)) {
+      filtered = filtered.filter((l) => (l.price ?? 0) >= min);
+    }
+  }
+
+  if (maxPrice) {
+    const max = Number(maxPrice);
+    if (!isNaN(max)) {
+      filtered = filtered.filter((l) => l.price !== null && l.price <= max);
+    }
   }
 
   return (
@@ -123,13 +152,17 @@ export default async function ListingsPage({ searchParams }: Props) {
       <Stack gap="xl">
         <Stack gap="xs">
           <Title order={1} size="h2" c="#202020">
-            {kategorie ? kategorie : q ? `Výsledky pro „${q}"` : "Aktuální inzeráty"}
+            {kategorie && kategorie !== "Všechno"
+              ? kategorie
+              : q
+                ? `Výsledky pro „${q}"`
+                : "Aktuální inzeráty"}
           </Title>
           <Text c="#6C6C6C">
-            {kategorie
+            {kategorie && kategorie !== "Všechno"
               ? `Inzeráty v kategorii „${kategorie}".`
               : q
-                ? `Nalezeno ${filtered.length} inzerátů.`
+                ? `Nalezeno ${filtered.length} inzerátů pro „${q}".`
                 : "Prohlédněte si nejnovější věci v našem bazaru."}
           </Text>
         </Stack>
