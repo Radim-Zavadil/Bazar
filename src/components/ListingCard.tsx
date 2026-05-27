@@ -22,6 +22,9 @@ export type Listing = {
   status: string;
   imageUrl: string | null;
   itemCondition?: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
   userId: string;
 };
 

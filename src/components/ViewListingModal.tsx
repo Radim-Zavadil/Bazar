@@ -23,6 +23,7 @@ import { SlTrash } from "react-icons/sl";
 import { deleteListing, updateListing } from "@/actions/listing.actions";
 import { useSession } from "@/lib/auth-client";
 import type { Listing } from "./ListingCard";
+import { ListingMap } from "./ListingMap";
 
 const CATEGORIES = ["Elektronika", "Oblečení", "Nábytek", "Dětské věci", "Knihy", "Sport", "Ostatní"];
 
@@ -55,6 +56,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
       itemCondition: "Nové" as "Nové" | "Použité",
       status: "Dostupné",
       description: "",
+      address: "",
       contactName: "",
       contactEmail: "",
     },
@@ -76,6 +78,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
         itemCondition: (listing.itemCondition ?? "Nové") as "Nové" | "Použité",
         status: listing.status || "Dostupné",
         description: listing.description,
+        address: listing.address || "",
         contactName: listing.sellerName,
         contactEmail: listing.contactEmail || "",
       });
@@ -117,6 +120,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
         itemCondition: values.itemCondition,
         status: values.status,
         imageUrl: previewUrl,
+        address: values.address,
         contactName: values.contactName,
         contactEmail: values.contactEmail,
       });
@@ -509,6 +513,30 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                 {...form.getInputProps("description")}
               />
 
+              {/* Address */}
+              <TextInput
+                label={
+                  <Group gap={4} wrap="nowrap">
+                    <Text size="sm" fw={500} c="#3A3A3A">
+                      Adresa
+                    </Text>
+                    {isEditing && <Pencil size={12} color="#8A8A8A" />}
+                  </Group>
+                }
+                readOnly={!isEditing}
+                radius={8}
+                placeholder="Zadejte adresu..."
+                styles={{
+                  label: { marginBottom: 4 },
+                  input: {
+                    borderColor: "#D5D5D5",
+                    fontSize: 14,
+                    background: !isEditing ? "#FFF" : undefined,
+                  },
+                }}
+                {...form.getInputProps("address")}
+              />
+
               {/* Contact Details */}
               <Group grow wrap="nowrap" align="flex-start">
                 <TextInput
@@ -554,6 +582,16 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                   {...form.getInputProps("contactEmail")}
                 />
               </Group>
+
+              {/* Map */}
+              {listing.lat !== null && listing.lng !== null && (
+                <Stack gap={8}>
+                  <Text size="sm" fw={500} c="#3A3A3A">
+                    Poloha na mapě
+                  </Text>
+                  <ListingMap lat={listing.lat} lng={listing.lng} />
+                </Stack>
+              )}
 
               {/* Submit changes button */}
               {isEditing && (
