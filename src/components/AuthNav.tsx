@@ -2,7 +2,12 @@
 
 import { Avatar, Button, Group, Menu, UnstyledButton } from "@mantine/core";
 import { useState } from "react";
-import { IoLogOutOutline, IoSettingsOutline, IoWalletOutline } from "react-icons/io5";
+import {
+  IoLogOutOutline,
+  IoSettingsOutline,
+  IoStatsChartOutline,
+  IoWalletOutline,
+} from "react-icons/io5";
 import { Link } from "@/i18n/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
 import { AuthModal } from "./AuthModal";
@@ -12,6 +17,7 @@ export function AuthNav() {
   const [modal, setModal] = useState<"login" | "register" | null>(null);
 
   if (session?.user) {
+    const isAdmin = (session.user as any).role === "Admin";
     const initials = session.user.name
       ? session.user.name
           .split(" ")
@@ -21,24 +27,57 @@ export function AuthNav() {
       : "U";
 
     return (
-      <Menu shadow="md" width={200} position="bottom-end" radius="md" withinPortal>
+      <Menu
+        shadow="md"
+        width={200}
+        position="bottom-end"
+        radius="md"
+        withinPortal
+      >
         <Menu.Target>
           <UnstyledButton style={{ display: "flex", alignItems: "center" }}>
-            <Avatar src={session.user.image} alt={session.user.name} radius="xl" color="blue" size={36}>
+            <Avatar
+              src={session.user.image}
+              alt={session.user.name}
+              radius="xl"
+              color="blue"
+              size={36}
+            >
               {initials}
             </Avatar>
           </UnstyledButton>
         </Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Item component={Link} href="/nastaveni" leftSection={<IoSettingsOutline size={16} />}>
+          {isAdmin && (
+            <Menu.Item
+              component={Link}
+              href="/admin/statistiky"
+              leftSection={<IoStatsChartOutline size={16} />}
+            >
+              Statistiky
+            </Menu.Item>
+          )}
+          <Menu.Item
+            component={Link}
+            href="/nastaveni"
+            leftSection={<IoSettingsOutline size={16} />}
+          >
             Nastavení
           </Menu.Item>
-          <Menu.Item component={Link} href="/nastaveni?tab=platby" leftSection={<IoWalletOutline size={16} />}>
+          <Menu.Item
+            component={Link}
+            href="/nastaveni?tab=platby"
+            leftSection={<IoWalletOutline size={16} />}
+          >
             Platby
           </Menu.Item>
           <Menu.Divider />
-          <Menu.Item color="red" leftSection={<IoLogOutOutline size={16} />} onClick={() => signOut()}>
+          <Menu.Item
+            color="red"
+            leftSection={<IoLogOutOutline size={16} />}
+            onClick={() => signOut()}
+          >
             Odhlásit se
           </Menu.Item>
         </Menu.Dropdown>
@@ -63,12 +102,24 @@ export function AuthNav() {
         >
           Přihlásit se
         </Button>
-        <Button radius={9} h={36} px="md" fz="sm" fw={500} bg="#194AD1" onClick={() => setModal("register")}>
+        <Button
+          radius={9}
+          h={36}
+          px="md"
+          fz="sm"
+          fw={500}
+          bg="#194AD1"
+          onClick={() => setModal("register")}
+        >
           Začít prodávat
         </Button>
       </Group>
 
-      <AuthModal opened={modal !== null} mode={modal ?? "login"} onClose={() => setModal(null)} />
+      <AuthModal
+        opened={modal !== null}
+        mode={modal ?? "login"}
+        onClose={() => setModal(null)}
+      />
     </>
   );
 }
