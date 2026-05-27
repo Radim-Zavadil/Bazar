@@ -2,7 +2,7 @@
 
 import { Avatar, Button, Group, Menu, UnstyledButton } from "@mantine/core";
 import { useState } from "react";
-import { IoLogOutOutline, IoSettingsOutline, IoWalletOutline } from "react-icons/io5";
+import { IoLogOutOutline, IoSettingsOutline, IoStatsChartOutline, IoWalletOutline } from "react-icons/io5";
 import { Link } from "@/i18n/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
 import { AuthModal } from "./AuthModal";
@@ -12,6 +12,7 @@ export function AuthNav() {
   const [modal, setModal] = useState<"login" | "register" | null>(null);
 
   if (session?.user) {
+    const isAdmin = (session.user as any).role === "Admin";
     const initials = session.user.name
       ? session.user.name
           .split(" ")
@@ -31,6 +32,11 @@ export function AuthNav() {
         </Menu.Target>
 
         <Menu.Dropdown>
+          {isAdmin && (
+            <Menu.Item component={Link} href="/admin/statistiky" leftSection={<IoStatsChartOutline size={16} />}>
+              Statistiky
+            </Menu.Item>
+          )}
           <Menu.Item component={Link} href="/nastaveni" leftSection={<IoSettingsOutline size={16} />}>
             Nastavení
           </Menu.Item>

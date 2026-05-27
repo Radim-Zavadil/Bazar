@@ -30,6 +30,7 @@ export default async function ListingsPage({ searchParams }: Props) {
         name: "Seed User",
         email: "seed@example.com",
         emailVerified: true,
+        role: "User",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -39,6 +40,7 @@ export default async function ListingsPage({ searchParams }: Props) {
         email: "seed@example.com",
         emailVerified: true,
         image: null,
+        role: "User",
         createdAt: new Date(),
         updatedAt: new Date(),
       };

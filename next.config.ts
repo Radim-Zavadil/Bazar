@@ -4,6 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   reactStrictMode: true,
+  serverExternalPackages: ["better-sqlite3"],
   images: {
     remotePatterns: [
       {

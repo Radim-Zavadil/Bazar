@@ -6,6 +6,7 @@ export const user = sqliteTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: integer("email_verified", { mode: "boolean" }).notNull(),
   image: text("image"),
+  role: text("role").$type<"User" | "Admin">().notNull().default("User"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
@@ -33,8 +34,12 @@ export const account = sqliteTable("account", {
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
-  accessTokenExpiresAt: integer("access_token_expires_at", { mode: "timestamp" }),
-  refreshTokenExpiresAt: integer("refresh_token_expires_at", { mode: "timestamp" }),
+  accessTokenExpiresAt: integer("access_token_expires_at", {
+    mode: "timestamp",
+  }),
+  refreshTokenExpiresAt: integer("refresh_token_expires_at", {
+    mode: "timestamp",
+  }),
   scope: text("scope"),
   password: text("password"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),

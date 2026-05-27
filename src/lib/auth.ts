@@ -19,5 +19,13 @@ export const auth = betterAuth({
     changeEmail: {
       enabled: true,
     },
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "User",
+        input: false, // Prevent user from setting role during signup
+      },
+    },
   },
 });
