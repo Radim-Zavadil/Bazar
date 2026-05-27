@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getStats } from "@/lib/stats";
 import { StatsDashboard } from "@/components/admin/StatsDashboard";
+import { auth } from "@/lib/auth";
+import { getStats } from "@/lib/stats";
 
 export default async function StatisticsPage() {
   const session = await auth.api.getSession({ headers: await headers() });

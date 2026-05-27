@@ -1,8 +1,8 @@
 import { count, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schemas/auth";
-import { listings } from "@/db/schemas/listing.schema";
 import { payments } from "@/db/schemas/chats";
+import { listings } from "@/db/schemas/listing.schema";
 
 export async function getStats() {
   // 1. User Signups over time (last 30 days)
@@ -12,20 +12,14 @@ export async function getStats() {
       count: count(),
     })
     .from(user)
-    .groupBy(
-      sql`strftime('%Y-%m-%d', datetime(created_at / 1000, 'unixepoch'))`,
-    )
-    .orderBy(
-      sql`strftime('%Y-%m-%d', datetime(created_at / 1000, 'unixepoch'))`,
-    );
+    .groupBy(sql`strftime('%Y-%m-%d', datetime(created_at / 1000, 'unixepoch'))`)
+    .orderBy(sql`strftime('%Y-%m-%d', datetime(created_at / 1000, 'unixepoch'))`);
 
   // 2. Sellers vs Buyers
   const totalUsersResult = await db.select({ count: count() }).from(user);
   const totalUsers = totalUsersResult[0].count;
 
-  const sellersResult = await db
-    .select({ count: count(sql`DISTINCT ${listings.userId}`) })
-    .from(listings);
+  const sellersResult = await db.select({ count: count(sql`DISTINCT ${listings.userId}`) }).from(listings);
   const sellers = sellersResult[0].count;
   const buyers = totalUsers - sellers;
 
