@@ -1,15 +1,26 @@
 "use client";
 
-import { Container, Grid, Paper, Stack, Text, Title, Group, SimpleGrid, Box } from "@mantine/core";
-import { BarChart, DonutChart, LineChart } from "@mantine/charts";
-import { IoPeopleOutline, IoStorefrontOutline, IoCartOutline } from "react-icons/io5";
+import {
+  Container,
+  Grid,
+  Paper,
+  Stack,
+  Text,
+  Title,
+  Group,
+  SimpleGrid,
+  Box,
+} from "@mantine/core";
+import { BarChart, LineChart } from "@mantine/charts";
 
 type Props = {
   stats: any;
 };
 
+const CAT_COLORS = ["#4BC34D", "#24ACD0", "#7035DE", "#C4372B", "#CC9E3D"];
+const PAYMENT_COLORS = ["#4BC34D", "#24ACD0"];
+
 export function StatsDashboard({ stats }: Props) {
-  // Prepare data for charts
   const signupData = stats.userSignups.map((s: any) => ({
     date: s.date,
     Uživatelé: s.count,
@@ -20,146 +31,231 @@ export function StatsDashboard({ stats }: Props) {
     Inzeráty: l.count,
   }));
 
-  const categoryData = stats.categoryBreakdown.map((c: any) => ({
-    category: c.category,
-    Počet: c.count,
-  }));
-
   const paymentData = stats.paymentMethods.map((p: any, index: number) => ({
     name: p.method === "qr" ? "QR Platba" : "Bankovní převod",
     value: p.count,
-    color: index === 0 ? "indigo.6" : "cyan.6",
+    color: PAYMENT_COLORS[index] ?? "#6E8596",
   }));
+
+  const totalPayments = paymentData.reduce(
+    (s: number, p: any) => s + p.value,
+    0,
+  );
+
+  const noBorderPaper: React.CSSProperties = {
+    background: "transparent",
+    border: "none",
+    boxShadow: "none",
+    padding: 0,
+  };
 
   return (
     <Container size="xl" py="xl">
       <Stack gap="xl">
-        <Title order={2} fw={700} c="#202020">
+        <Title
+          order={2}
+          fw={700}
+          fz={15}
+          tt="uppercase"
+          c="dimmed"
+          style={{ letterSpacing: "0.15em" }}
+        >
           Statistiky obchodu
         </Title>
 
-        {/* Top Row: User Signups and Main Stats */}
+        {/* ── ROW 1: Signups chart + user stats ── */}
         <Grid>
           <Grid.Col span={{ base: 12, md: 8 }}>
-            <Paper p="xl" radius="md" withBorder style={{ height: "100%" }}>
+            <Paper p="xl" radius="md" style={noBorderPaper}>
               <Stack gap="md">
-                <Text fw={600} size="lg">
+                <Text
+                  fw={600}
+                  size="sm"
+                  tt="uppercase"
+                  c="black"
+                  style={{ letterSpacing: "0.12em" }}
+                >
                   Nové registrace uživatelů
                 </Text>
-                <Box h={300}>
-                  <LineChart
-                    h={300}
-                    data={signupData}
-                    dataKey="date"
-                    series={[{ name: "Uživatelé", color: "blue.6" }]}
-                    curveType="monotone"
-                    tickLine="none"
-                    gridAxis="xy"
-                  />
-                </Box>
+                <LineChart
+                  h={260}
+                  data={signupData}
+                  dataKey="date"
+                  series={[{ name: "Uživatelé", color: "#6E8596" }]}
+                  curveType="monotone"
+                  tickLine="none"
+                  gridAxis="y"
+                  withDots={false}
+                />
               </Stack>
             </Paper>
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack gap="md" style={{ height: "100%" }}>
-              <Paper p="xl" radius="md" withBorder>
-                <Group justify="space-between">
-                  <Stack gap={0}>
-                    <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
-                      Celkem uživatelů
-                    </Text>
-                    <Text fw={700} size="xl">
-                      {stats.sellerStats.total}
-                    </Text>
-                  </Stack>
-                  <IoPeopleOutline size={24} color="#194AD1" />
-                </Group>
-              </Paper>
+            <Stack
+              gap="xl"
+              style={{ height: "100%", justifyContent: "center" }}
+            >
+              {/* Celkem uživatelů — no border */}
+              <Stack gap={2}>
+                <Text fw={500} size="2.6rem" lh={1} c="dark.8">
+                  {Number(stats.sellerStats.total).toLocaleString("cs-CZ")}
+                </Text>
+                <Text
+                  c="dimmed"
+                  size="xs"
+                  tt="uppercase"
+                  fw={700}
+                  style={{ letterSpacing: "0.12em" }}
+                >
+                  Celkem uživatelů
+                </Text>
+              </Stack>
 
-              <Paper p="xl" radius="md" withBorder flex={1}>
-                <Stack gap="md">
-                  <Text fw={600} size="sm">
-                    Struktura uživatelů
+              {/* Prodejci & Kupující — no border */}
+              <Group grow align="flex-start">
+                <Stack gap={2}>
+                  <Text fw={500} size="2rem" lh={1} c="dark.8">
+                    {Number(stats.sellerStats.sellers).toLocaleString("cs-CZ")}
                   </Text>
-                  <Group grow>
-                    <Stack gap={4}>
-                      <Group gap={8}>
-                        <IoStorefrontOutline size={16} color="blue" />
-                        <Text size="xs" fw={500}>Prodejci</Text>
-                      </Group>
-                      <Text fw={700} size="lg">{stats.sellerStats.sellers}</Text>
-                    </Stack>
-                    <Stack gap={4}>
-                      <Group gap={8}>
-                        <IoCartOutline size={16} color="green" />
-                        <Text size="xs" fw={500}>Kupující</Text>
-                      </Group>
-                      <Text fw={700} size="lg">{stats.sellerStats.buyers}</Text>
-                    </Stack>
-                  </Group>
-                  <Text size="xs" c="dimmed">
-                    Kupující jsou uživatelé, kteří zatím nevytvořili žádný inzerát.
+                  <Text
+                    size="xs"
+                    c="dimmed"
+                    tt="uppercase"
+                    fw={700}
+                    style={{ letterSpacing: "0.12em" }}
+                  >
+                    Prodejci
                   </Text>
                 </Stack>
-              </Paper>
+                <Stack gap={2}>
+                  <Text fw={500} size="2rem" lh={1} c="dark.8">
+                    {Number(stats.sellerStats.buyers).toLocaleString("cs-CZ")}
+                  </Text>
+                  <Text
+                    size="xs"
+                    c="dimmed"
+                    tt="uppercase"
+                    fw={700}
+                    style={{ letterSpacing: "0.12em" }}
+                  >
+                    Kupující
+                  </Text>
+                </Stack>
+              </Group>
+
+              <Text size="xs" c="dimmed">
+                Kupující jsou uživatelé, kteří zatím nevytvořili žádný inzerát.
+              </Text>
             </Stack>
           </Grid.Col>
         </Grid>
 
-        {/* Bottom Row: Listings and Payments */}
+        {/* ── ROW 2: Aktivní inzeráty + Kategorie + Platební metody ── */}
         <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
+          {/* Aktivní inzeráty — WITH border */}
           <Paper p="xl" radius="md" withBorder>
             <Stack gap="md">
-              <Text fw={600} size="md">
+              <Text
+                fw={600}
+                size="xs"
+                tt="uppercase"
+                c="black"
+                style={{ letterSpacing: "0.12em" }}
+              >
                 Aktivní inzeráty
               </Text>
               <LineChart
                 h={200}
                 data={listingsData}
                 dataKey="date"
-                series={[{ name: "Inzeráty", color: "indigo.6" }]}
+                series={[{ name: "Inzeráty", color: "#6E8596" }]}
                 curveType="monotone"
                 tickLine="none"
+                gridAxis="y"
+                withDots={false}
               />
             </Stack>
           </Paper>
 
+          {/* Kategorie inzerátů — WITH border, BarChart with per-category colours */}
           <Paper p="xl" radius="md" withBorder>
             <Stack gap="md">
-              <Text fw={600} size="md">
+              <Text
+                fw={600}
+                size="xs"
+                tt="uppercase"
+                c="black"
+                style={{ letterSpacing: "0.12em" }}
+              >
                 Kategorie inzerátů
               </Text>
               <BarChart
                 h={200}
-                data={categoryData}
+                data={stats.categoryBreakdown.map((c: any, i: number) => ({
+                  category: c.category,
+                  Počet: c.count,
+                  color: CAT_COLORS[i % CAT_COLORS.length],
+                }))}
                 dataKey="category"
-                series={[{ name: "Počet", color: "teal.6" }]}
+                series={[{ name: "Počet", color: "color" }]}
                 tickLine="none"
+                gridAxis="y"
+                barProps={{ maxBarSize: 24, borderRadius: 3 }}
               />
             </Stack>
           </Paper>
 
+          {/* Platební metody — WITH border */}
           <Paper p="xl" radius="md" withBorder>
-            <Stack gap="md" align="center">
-              <Text fw={600} size="md" style={{ alignSelf: "flex-start" }}>
+            <Stack gap="md">
+              <Text
+                fw={600}
+                size="xs"
+                tt="uppercase"
+                c="black"
+                style={{ letterSpacing: "0.12em" }}
+              >
                 Platební metody
               </Text>
-              <DonutChart
-                data={paymentData}
-                withLabels
-                withLabelsLine
-                size={160}
-                thickness={20}
-              />
-              <Stack gap={4} w="100%" mt="sm">
-                {paymentData.map((item: any) => (
-                  <Group key={item.name} justify="space-between">
-                    <Group gap={8}>
-                      <Box w={10} h={10} style={{ borderRadius: "50%", background: `var(--mantine-color-${item.color.split('.')[0]}-${item.color.split('.')[1]})` }} />
-                      <Text size="xs">{item.name}</Text>
+
+              {/* colour strip */}
+              <Group
+                gap={0}
+                style={{ borderRadius: 3, overflow: "hidden", height: 14 }}
+              >
+                {paymentData.map((p: any) => (
+                  <Box
+                    key={p.name}
+                    style={{
+                      width: `${(p.value / totalPayments) * 100}%`,
+                      height: 14,
+                      background: p.color,
+                    }}
+                  />
+                ))}
+              </Group>
+
+              <Stack gap={10} mt={4}>
+                {paymentData.map((p: any) => (
+                  <Group key={p.name} justify="space-between">
+                    <Group gap={7}>
+                      <Box
+                        w={8}
+                        h={8}
+                        style={{
+                          borderRadius: "50%",
+                          background: p.color,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <Text size="xs" c="dimmed">
+                        {p.name}
+                      </Text>
                     </Group>
-                    <Text size="xs" fw={700}>{item.value}</Text>
+                    <Text size="xs" fw={700}>
+                      {p.value.toLocaleString("cs-CZ")}
+                    </Text>
                   </Group>
                 ))}
               </Stack>
