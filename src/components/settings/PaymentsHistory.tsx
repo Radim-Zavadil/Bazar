@@ -5,9 +5,18 @@ import { useEffect, useState } from "react";
 import { IoWalletOutline } from "react-icons/io5";
 import { useSession } from "@/lib/auth-client";
 
+interface UserPayment {
+  id: number;
+  amount: number;
+  status: string;
+  createdAt: string;
+  sellerName: string;
+  listingTitle: string | null;
+}
+
 export function PaymentsHistory() {
   const { data: session } = useSession();
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<UserPayment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

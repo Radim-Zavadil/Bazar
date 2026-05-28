@@ -3,31 +3,45 @@
 import { BarChart, LineChart } from "@mantine/charts";
 import { Box, Container, Grid, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 
+type UserSignup = { date: string; count: number };
+type ListingPoint = { date: string; count: number };
+type CategoryPoint = { category: string; count: number };
+type PaymentMethod = { method: string; count: number };
+type PaymentEntry = { name: string; value: number; color: string };
+
+type Stats = {
+  userSignups: UserSignup[];
+  sellerStats: { total: number; sellers: number; buyers: number };
+  listingsOverTime: ListingPoint[];
+  categoryBreakdown: CategoryPoint[];
+  paymentMethods: PaymentMethod[];
+};
+
 type Props = {
-  stats: any;
+  stats: Stats;
 };
 
 const CAT_COLORS = ["#4BC34D", "#24ACD0", "#7035DE", "#C4372B", "#CC9E3D"];
 const PAYMENT_COLORS = ["#4BC34D", "#24ACD0"];
 
 export function StatsDashboard({ stats }: Props) {
-  const signupData = stats.userSignups.map((s: any) => ({
+  const signupData = stats.userSignups.map((s: UserSignup) => ({
     date: s.date,
     Uživatelé: s.count,
   }));
 
-  const listingsData = stats.listingsOverTime.map((l: any) => ({
+  const listingsData = stats.listingsOverTime.map((l: ListingPoint) => ({
     date: l.date,
     Inzeráty: l.count,
   }));
 
-  const paymentData = stats.paymentMethods.map((p: any, index: number) => ({
+  const paymentData = stats.paymentMethods.map((p: PaymentMethod, index: number) => ({
     name: p.method === "qr" ? "QR Platba" : "Bankovní převod",
     value: p.count,
     color: PAYMENT_COLORS[index] ?? "#6E8596",
   }));
 
-  const totalPayments = paymentData.reduce((s: number, p: any) => s + p.value, 0);
+  const totalPayments = paymentData.reduce((s: number, p: PaymentEntry) => s + p.value, 0);
 
   const noBorderPaper: React.CSSProperties = {
     background: "transparent",
@@ -60,6 +74,7 @@ export function StatsDashboard({ stats }: Props) {
                   tickLine="none"
                   gridAxis="y"
                   withDots={false}
+                  yAxisProps={{ tickFormatter: (v: number) => (Number.isInteger(v) ? String(v) : "") }}
                 />
               </Stack>
             </Paper>
@@ -77,29 +92,15 @@ export function StatsDashboard({ stats }: Props) {
                 </Text>
               </Stack>
 
-              {/* Prodejci & Kupující — no border */}
-              <Group grow align="flex-start">
-                <Stack gap={2}>
-                  <Text fw={500} size="2rem" lh={1} c="dark.8">
-                    {Number(stats.sellerStats.sellers).toLocaleString("cs-CZ")}
-                  </Text>
-                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
-                    Prodejci
-                  </Text>
-                </Stack>
-                <Stack gap={2}>
-                  <Text fw={500} size="2rem" lh={1} c="dark.8">
-                    {Number(stats.sellerStats.buyers).toLocaleString("cs-CZ")}
-                  </Text>
-                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
-                    Kupující
-                  </Text>
-                </Stack>
-              </Group>
-
-              <Text size="xs" c="dimmed">
-                Kupující jsou uživatelé, kteří zatím nevytvořili žádný inzerát.
-              </Text>
+              {/* Prodejci — no border */}
+              <Stack gap={2}>
+                <Text fw={500} size="2.6rem" lh={1} c="dark.8">
+                  {Number(stats.sellerStats.sellers).toLocaleString("cs-CZ")}
+                </Text>
+                <Text c="dimmed" size="xs" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
+                  Prodejci
+                </Text>
+              </Stack>
             </Stack>
           </Grid.Col>
         </Grid>
@@ -121,6 +122,7 @@ export function StatsDashboard({ stats }: Props) {
                 tickLine="none"
                 gridAxis="y"
                 withDots={false}
+                yAxisProps={{ tickFormatter: (v: number) => (Number.isInteger(v) ? String(v) : "") }}
               />
             </Stack>
           </Paper>
@@ -133,7 +135,7 @@ export function StatsDashboard({ stats }: Props) {
               </Text>
               <BarChart
                 h={200}
-                data={stats.categoryBreakdown.map((c: any, i: number) => ({
+                data={stats.categoryBreakdown.map((c: CategoryPoint, i: number) => ({
                   category: c.category,
                   Počet: c.count,
                   color: CAT_COLORS[i % CAT_COLORS.length],
@@ -143,6 +145,7 @@ export function StatsDashboard({ stats }: Props) {
                 tickLine="none"
                 gridAxis="y"
                 barProps={{ maxBarSize: 24, radius: 3 }}
+                yAxisProps={{ tickFormatter: (v: number) => (Number.isInteger(v) ? String(v) : "") }}
               />
             </Stack>
           </Paper>
@@ -156,7 +159,7 @@ export function StatsDashboard({ stats }: Props) {
 
               {/* colour strip */}
               <Group gap={0} style={{ borderRadius: 3, overflow: "hidden", height: 14 }}>
-                {paymentData.map((p: any) => (
+                {paymentData.map((p: PaymentEntry) => (
                   <Box
                     key={p.name}
                     style={{
@@ -169,7 +172,7 @@ export function StatsDashboard({ stats }: Props) {
               </Group>
 
               <Stack gap={10} mt={4}>
-                {paymentData.map((p: any) => (
+                {paymentData.map((p: PaymentEntry) => (
                   <Group key={p.name} justify="space-between">
                     <Group gap={7}>
                       <Box

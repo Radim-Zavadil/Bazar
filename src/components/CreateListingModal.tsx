@@ -14,8 +14,8 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { MdClose, MdUpload } from "react-icons/md";
 import { createListing } from "@/actions/listing.actions";
 import { useSession } from "@/lib/auth-client";
 
@@ -149,7 +149,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
           Vytvořit inzerát
         </Text>
         <UnstyledButton onClick={handleClose} style={{ lineHeight: 0 }}>
-          <X size={20} color="#6C6C6C" />
+          <MdClose size={20} color="#6C6C6C" />
         </UnstyledButton>
       </Group>
 
@@ -213,7 +213,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
                       lineHeight: 0,
                     }}
                   >
-                    <Upload size={22} color="#6C6C6C" />
+                    <MdUpload size={22} color="#6C6C6C" />
                   </Box>
                   <Text size="sm" fw={500} c="#555">
                     Přetáhněte obrázek nebo klikněte pro nahrání
