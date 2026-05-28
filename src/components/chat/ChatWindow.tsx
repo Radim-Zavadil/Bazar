@@ -481,16 +481,18 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
           </Text>
         ) : (
           <Group gap={8} wrap="nowrap" align="center">
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              size="lg"
-              radius="xl"
-              aria-label="Příloha"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <FaCirclePlus size={22} color={menuOpen ? "#1754D8" : "#A0A0A0"} />
-            </ActionIcon>
+            {isSeller && (
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="lg"
+                radius="xl"
+                aria-label="Příloha"
+                onClick={() => setMenuOpen(!menuOpen)}
+              >
+                <FaCirclePlus size={22} color={menuOpen ? "#1754D8" : "#A0A0A0"} />
+              </ActionIcon>
+            )}
 
             <TextInput
               style={{ flex: 1 }}
