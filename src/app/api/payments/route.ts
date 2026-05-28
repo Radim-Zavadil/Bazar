@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { payments } from "@/db/schemas/chats";
+import { messages, payments } from "@/db/schemas/chats";
 import { listings } from "@/db/schemas/listing.schema";
 import { auth } from "@/lib/auth";
 
@@ -43,6 +43,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  // Guard: verify there is still a pending payment message for this chat
+  const [pendingMsg] = await db
+    .select()
+    .from(messages)
+    .where(and(eq(messages.chatId, chatId), eq(messages.type, "payment"), eq(messages.paymentStatus, "pending")))
+    .limit(1);
+
+  if (!pendingMsg) {
+    return NextResponse.json({ error: "Platební výzva již není aktivní." }, { status: 400 });
+  }
+
   try {
     const isQr = method === "qr";
     const sessionId = isQr ? `session_${Math.random().toString(36).substring(2, 15)}` : null;
@@ -63,9 +74,12 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    // 2. Update listing status to "Prodáno / předáno" if completed
+    // 2. Card payment completes immediately
     if (status === "completed") {
+      // Update listing to "Prodáno / předáno"
       await db.update(listings).set({ status: "Prodáno / předáno" }).where(eq(listings.id, listingId));
+      // Mark the payment message as completed
+      await db.update(messages).set({ paymentStatus: "completed" }).where(eq(messages.id, pendingMsg.id));
     }
 
     return NextResponse.json(payment, { status: 201 });

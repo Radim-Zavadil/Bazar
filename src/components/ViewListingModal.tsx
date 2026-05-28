@@ -478,7 +478,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                     Informace o prodejci
                   </Text>
                   <Group gap={12}>
-                    <Avatar src={null} radius="xl" size={48} color="blue">
+                    <Avatar src={listing.sellerAvatar || null} radius="xl" size={48} color="blue">
                       {form.values.contactName.charAt(0).toUpperCase()}
                     </Avatar>
                     <Text fw={600} size="md">

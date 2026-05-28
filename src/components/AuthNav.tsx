@@ -12,7 +12,7 @@ export function AuthNav() {
   const [modal, setModal] = useState<"login" | "register" | null>(null);
 
   if (session?.user) {
-    const isAdmin = (session.user as any).role === "Admin";
+    const isAdmin = (session.user as { role?: string }).role === "Admin";
     const initials = session.user.name
       ? session.user.name
           .split(" ")

@@ -2,7 +2,7 @@ import { and, desc, eq, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { chats, messages } from "@/db/schemas/chats";
+import { chats, messages, payments } from "@/db/schemas/chats";
 import { listings } from "@/db/schemas/listing.schema";
 import { auth } from "@/lib/auth";
 
@@ -43,13 +43,45 @@ export async function GET(request: NextRequest) {
 
   const processedChats = await Promise.all(
     userChats.map(async (chat) => {
-      if (chat.listingStatus === "Rezervováno" && chat.listingUpdatedAt && chat.listingUpdatedAt < twentyFourHoursAgo) {
-        // Transition to Sold
-        await db
-          .update(listings)
-          .set({ status: "Prodáno / předáno", updatedAt: now })
-          .where(eq(listings.id, chat.listingId));
-        chat.listingStatus = "Prodáno / předáno";
+      if (chat.listingStatus === "Rezervováno") {
+        let shouldExpire = false;
+
+        // Check if there is a pending payment message in this chat
+        const [pendingMsg] = await db
+          .select()
+          .from(messages)
+          .where(and(eq(messages.chatId, chat.id), eq(messages.type, "payment"), eq(messages.paymentStatus, "pending")))
+          .limit(1);
+
+        if (pendingMsg) {
+          const msgCreated = new Date(pendingMsg.createdAt);
+          if (msgCreated < twentyFourHoursAgo) {
+            shouldExpire = true;
+          }
+        } else {
+          // If there is no pending payment message but listing is still reserved,
+          // and either listingUpdatedAt is null or older than 24 hours (covers seed/old data)
+          if (!chat.listingUpdatedAt || chat.listingUpdatedAt < twentyFourHoursAgo) {
+            shouldExpire = true;
+          }
+        }
+
+        if (shouldExpire) {
+          if (pendingMsg) {
+            // Expire the message
+            await db.update(messages).set({ paymentStatus: "expired" }).where(eq(messages.id, pendingMsg.id));
+
+            // Also expire corresponding payments record if it exists
+            await db
+              .update(payments)
+              .set({ status: "expired" })
+              .where(and(eq(payments.chatId, chat.id), eq(payments.status, "pending")));
+          }
+
+          // Reset listing to Dostupné
+          await db.update(listings).set({ status: "Dostupné", updatedAt: now }).where(eq(listings.id, chat.listingId));
+          chat.listingStatus = "Dostupné";
+        }
       }
       return chat;
     }),

@@ -1,7 +1,7 @@
 "use client";
 
 import { ActionIcon, Box, Button, Group, ScrollArea, Text, TextInput, Tooltip, UnstyledButton } from "@mantine/core";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { HiPaperAirplane } from "react-icons/hi2";
 import { IoChevronBack, IoClose } from "react-icons/io5";
@@ -15,6 +15,7 @@ interface Message {
   senderName: string;
   content: string;
   type: string;
+  paymentStatus?: string;
   createdAt: string;
 }
 
@@ -26,32 +27,42 @@ interface ChatWindowProps {
   onMessagesUpdate: () => void;
 }
 
+// Human-readable label + colour for each paymentStatus
+const PAYMENT_STATUS_LABEL: Record<string, { label: string; color: string }> = {
+  pending: { label: "Čeká na platbu", color: "#F59F00" },
+  completed: { label: "Zaplaceno", color: "#4CAF50" },
+  cancelled: { label: "Zrušeno prodejcem", color: "#868E96" },
+  declined: { label: "Odmítnuto kupujícím", color: "#868E96" },
+  expired: { label: "Vypršelo", color: "#868E96" },
+};
+
 export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUpdate }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [paymentOpened, setPaymentOpened] = useState(false);
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
   const viewport = useRef<HTMLDivElement>(null);
 
-  // Load messages when chat changes
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const res = await fetch(`/api/chats/${chat.id}/messages`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) setMessages(data);
-      } catch {
-        // ignore
-      }
+  const isSeller = chat.sellerName === currentUser;
+  const isBuyer = chat.buyerName === currentUser;
+
+  // ── Fetch messages ──────────────────────────────────────────────────────────
+  const fetchMessages = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/chats/${chat.id}/messages`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setMessages(data);
+    } catch {
+      // ignore
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
   }, [chat.id]);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
 
   // Auto-scroll to bottom on new messages
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on message count change
@@ -64,6 +75,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
     }
   }, [messages.length]);
 
+  // ── Send text message ───────────────────────────────────────────────────────
   async function handleSend() {
     const content = input.trim();
     if (!content || sending || !isLoggedIn) return;
@@ -84,6 +96,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
     }
   }
 
+  // ── Send payment message (seller only) ──────────────────────────────────────
   async function handlePayment() {
     if (sending || !isLoggedIn) return;
     setSending(true);
@@ -104,6 +117,24 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
       onMessagesUpdate();
     } finally {
       setSending(false);
+    }
+  }
+
+  // ── Cancel (seller) / Decline (buyer) ───────────────────────────────────────
+  async function handlePaymentAction(msgId: number, paymentStatus: "cancelled" | "declined") {
+    setActionLoading(msgId);
+    try {
+      const res = await fetch(`/api/chats/${chat.id}/messages/${msgId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentStatus }),
+      });
+      if (!res.ok) return;
+      // Optimistically update local state
+      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, paymentStatus } : m)));
+      onMessagesUpdate(); // refresh chat list so listing status badge updates
+    } finally {
+      setActionLoading(null);
     }
   }
 
@@ -200,9 +231,116 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
             {messages.map((msg, i) => {
               const isMe = msg.senderName === currentUser;
               const prevMsg = messages[i - 1];
-              // Show date header if first message or different day
               const showDateHeader =
                 i === 0 || new Date(prevMsg.createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+
+              if (msg.type === "payment") {
+                // Derive effective status (backward compat: if column missing, infer from listing)
+                const effectiveStatus =
+                  msg.paymentStatus ?? (chat.listingStatus === "Prodáno / předáno" ? "completed" : "pending");
+                const isPending = effectiveStatus === "pending";
+                const statusInfo = PAYMENT_STATUS_LABEL[effectiveStatus] ?? PAYMENT_STATUS_LABEL.pending;
+
+                return (
+                  <Box key={msg.id}>
+                    {showDateHeader && (
+                      <Text
+                        size="xs"
+                        c="dimmed"
+                        ta="center"
+                        py={8}
+                        style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 10 }}
+                      >
+                        {formatDateHeader(msg.createdAt)}
+                      </Text>
+                    )}
+                    {/* Payment bubble – centred, not aligned to sender */}
+                    <Box
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: isMe ? "flex-end" : "flex-start",
+                        marginBottom: 2,
+                      }}
+                    >
+                      <Box
+                        style={{
+                          background: "#fff",
+                          border: "1px solid #EFEFEF",
+                          borderRadius: 16,
+                          padding: 20,
+                          width: "100%",
+                          maxWidth: 300,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                          opacity: isPending ? 1 : 0.85,
+                        }}
+                      >
+                        <Text size="xs" c="#8E8E93" fw={500} mb={4}>
+                          Platba
+                        </Text>
+                        <Text size="xl" fw={700} c="#000" mb={2}>
+                          {msg.content}
+                        </Text>
+
+                        {/* Status label */}
+                        <Text size="xs" fw={600} mb={isPending ? 16 : 0} style={{ color: statusInfo.color }}>
+                          {statusInfo.label}
+                        </Text>
+
+                        {/* Action buttons – only when pending */}
+                        {isPending && isBuyer && (
+                          <Group gap={8} mt={16}>
+                            <Button
+                              style={{ flex: 1, background: "#185EDB", color: "#fff", fontWeight: 600 }}
+                              radius="md"
+                              onClick={() => setPaymentOpened(true)}
+                            >
+                              Zaplatit
+                            </Button>
+                            <Button
+                              style={{ flex: 1, fontWeight: 600 }}
+                              radius="md"
+                              variant="outline"
+                              color="red"
+                              loading={actionLoading === msg.id}
+                              onClick={() => handlePaymentAction(msg.id, "declined")}
+                            >
+                              Odmítnout
+                            </Button>
+                          </Group>
+                        )}
+
+                        {isPending && isSeller && (
+                          <Button
+                            fullWidth
+                            radius="md"
+                            variant="outline"
+                            color="gray"
+                            mt={16}
+                            loading={actionLoading === msg.id}
+                            onClick={() => handlePaymentAction(msg.id, "cancelled")}
+                          >
+                            Zrušit
+                          </Button>
+                        )}
+
+                        {/* Completed state button (non-interactive) */}
+                        {effectiveStatus === "completed" && (
+                          <Button
+                            fullWidth
+                            radius="md"
+                            mt={16}
+                            disabled
+                            style={{ background: "#4CAF50", color: "#fff", fontWeight: 600, opacity: 1 }}
+                          >
+                            Zaplaceno ✓
+                          </Button>
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
+                );
+              }
 
               return (
                 <Box key={msg.id}>
@@ -229,60 +367,21 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
                       marginBottom: 2,
                     }}
                   >
-                    {msg.type === "payment" ? (
-                      <Box
-                        style={{
-                          background: "#fff",
-                          border: "1px solid #EFEFEF",
-                          borderRadius: 16,
-                          padding: 20,
-                          width: "100%",
-                          maxWidth: 280,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                          opacity: chat.listingStatus !== "Dostupné" ? 0.8 : 1,
-                        }}
-                      >
-                        <Text size="xs" c="#8E8E93" fw={500} mb={4}>
-                          Platba
-                        </Text>
-                        <Text size="xl" fw={700} c="#000" mb={2}>
-                          {msg.content}
-                        </Text>
-                        <Text size="xs" c="#AEAEB2" mb={20}>
-                          {chat.listingStatus === "Dostupné" ? "Zaplatit teď" : "Zaplaceno"}
-                        </Text>
-                        <Button
-                          fullWidth
-                          radius="md"
-                          onClick={() => chat.listingStatus === "Dostupné" && setPaymentOpened(true)}
-                          disabled={chat.listingStatus !== "Dostupné"}
-                          style={{
-                            background: chat.listingStatus === "Dostupné" ? "#185EDB" : "#4CAF50",
-                            color: "#fff",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {chat.listingStatus === "Dostupné" ? "Zaplatit" : "Zaplaceno"}
-                        </Button>
-                      </Box>
-                    ) : (
-                      <Box
-                        style={{
-                          background: isMe ? "#1754D8" : "#EFEFEF",
-                          color: isMe ? "#fff" : "#1A1A1A",
-                          // iOS-style sharp tail on the bottom corner
-                          borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                          padding: "9px 14px",
-                          maxWidth: "78%",
-                          wordBreak: "break-word",
-                          lineHeight: 1.45,
-                        }}
-                      >
-                        <Text size="sm" style={{ color: "inherit", lineHeight: 1.45 }}>
-                          {msg.content}
-                        </Text>
-                      </Box>
-                    )}
+                    <Box
+                      style={{
+                        background: isMe ? "#1754D8" : "#EFEFEF",
+                        color: isMe ? "#fff" : "#1A1A1A",
+                        borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                        padding: "9px 14px",
+                        maxWidth: "78%",
+                        wordBreak: "break-word",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <Text size="sm" style={{ color: "inherit", lineHeight: 1.45 }}>
+                        {msg.content}
+                      </Text>
+                    </Box>
                   </Box>
                 </Box>
               );
@@ -319,7 +418,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
             gap: 16,
           }}
         >
-          {chat.sellerName === currentUser && (
+          {isSeller && (
             <UnstyledButton onClick={handlePayment}>
               <Group gap={12} wrap="nowrap">
                 <Box
@@ -360,7 +459,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
                 <IoClose size={18} color="#AAA" />
               </Box>
               <Text fw={600} size="sm">
-                Close
+                Zavřít
               </Text>
             </Group>
           </UnstyledButton>
@@ -382,7 +481,6 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
           </Text>
         ) : (
           <Group gap={8} wrap="nowrap" align="center">
-            {/* Plus button — decorative / future attachment */}
             <ActionIcon
               variant="subtle"
               color="gray"
@@ -444,6 +542,7 @@ export function ChatWindow({ chat, currentUser, isLoggedIn, onBack, onMessagesUp
         buyerName={chat.buyerName}
         sellerName={chat.sellerName}
         onSuccess={() => {
+          fetchMessages();
           onMessagesUpdate();
         }}
       />

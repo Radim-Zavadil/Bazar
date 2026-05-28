@@ -20,7 +20,26 @@ export default async function ListingsPage({ searchParams }: Props) {
   const { kategorie, q, minPrice, maxPrice } = await searchParams;
 
   // Zkontrolujeme, zda jsou v databázi nějaké inzeráty
-  let allListings = await db.select().from(listings);
+  let allListings = await db
+    .select({
+      id: listings.id,
+      title: listings.title,
+      description: listings.description,
+      sellerName: listings.sellerName,
+      contactEmail: listings.contactEmail,
+      price: listings.price,
+      category: listings.category,
+      status: listings.status,
+      imageUrl: listings.imageUrl,
+      itemCondition: listings.itemCondition,
+      address: listings.address,
+      lat: listings.lat,
+      lng: listings.lng,
+      userId: listings.userId,
+      sellerAvatar: user.image,
+    })
+    .from(listings)
+    .leftJoin(user, eq(listings.userId, user.id));
 
   // Pokud je databáze prázdná, přidáme 5 ukázkových inzerátů
   if (allListings.length === 0) {
@@ -110,7 +129,26 @@ export default async function ListingsPage({ searchParams }: Props) {
     ]);
 
     // Načteme je znovu
-    allListings = await db.select().from(listings);
+    allListings = await db
+      .select({
+        id: listings.id,
+        title: listings.title,
+        description: listings.description,
+        sellerName: listings.sellerName,
+        contactEmail: listings.contactEmail,
+        price: listings.price,
+        category: listings.category,
+        status: listings.status,
+        imageUrl: listings.imageUrl,
+        itemCondition: listings.itemCondition,
+        address: listings.address,
+        lat: listings.lat,
+        lng: listings.lng,
+        userId: listings.userId,
+        sellerAvatar: user.image,
+      })
+      .from(listings)
+      .leftJoin(user, eq(listings.userId, user.id));
   }
 
   // Filtrujeme podle kategorie a/nebo hledaného výrazu

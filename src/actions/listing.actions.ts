@@ -198,7 +198,7 @@ export async function deleteListing(listingId: number): Promise<CreateListingRes
   }
 
   const isOwner = existingListing.userId === activeSession.user.id;
-  const isAdmin = (activeSession.user as any).role === "Admin";
+  const isAdmin = (activeSession.user as { role?: string }).role === "Admin";
 
   if (!isOwner && !isAdmin) {
     return {

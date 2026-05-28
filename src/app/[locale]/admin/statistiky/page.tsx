@@ -7,7 +7,7 @@ import { getStats } from "@/lib/stats";
 export default async function StatisticsPage() {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session || (session.user as any).role !== "Admin") {
+  if (!session || (session.user as { role?: string }).role !== "Admin") {
     redirect("/");
   }
 

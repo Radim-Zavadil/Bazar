@@ -26,6 +26,7 @@ export type Listing = {
   lat: number | null;
   lng: number | null;
   userId: string;
+  sellerAvatar?: string | null;
 };
 
 type ListingCardProps = {

@@ -4,20 +4,22 @@ import { Box, Button, Center, Image, Loader, Stack, Text } from "@mantine/core";
 import confetti from "canvas-confetti";
 import { use, useEffect, useState } from "react";
 import { FaRegCircleCheck } from "react-icons/fa6";
+import { IoClose } from "react-icons/io5";
 
 interface PaymentPageProps {
   params: Promise<{ id: string }>;
 }
 
+type PageState = "loading" | "pending" | "already_paid" | "success" | "cancelled" | "error";
+
 export default function ZaplatitPage({ params }: PaymentPageProps) {
   const { id: sessionId } = use(params);
-  const [loading, setLoading] = useState(true);
-  const [success, setSuccess] = useState(false);
+  const [pageState, setPageState] = useState<PageState>("loading");
   const [paying, setPaying] = useState(false);
-  const [error, setError] = useState(false);
 
+  // Fire confetti only when the user actually completes the payment in this session
   useEffect(() => {
-    if (success) {
+    if (pageState === "success") {
       confetti({
         particleCount: 150,
         spread: 70,
@@ -25,7 +27,7 @@ export default function ZaplatitPage({ params }: PaymentPageProps) {
         zIndex: 10000,
       });
     }
-  }, [success]);
+  }, [pageState]);
 
   useEffect(() => {
     fetch(`/api/payments/${sessionId}`)
@@ -35,13 +37,15 @@ export default function ZaplatitPage({ params }: PaymentPageProps) {
       })
       .then((data) => {
         if (data.status === "completed") {
-          setSuccess(true);
+          setPageState("already_paid");
+        } else if (["cancelled", "declined", "expired"].includes(data.status)) {
+          setPageState("cancelled");
+        } else {
+          setPageState("pending");
         }
-        setLoading(false);
       })
       .catch(() => {
-        setError(true);
-        setLoading(false);
+        setPageState("error");
       });
   }, [sessionId]);
 
@@ -52,7 +56,13 @@ export default function ZaplatitPage({ params }: PaymentPageProps) {
         method: "POST",
       });
       if (res.ok) {
-        setSuccess(true);
+        const data = await res.json();
+        if (data.alreadyPaid) {
+          // Another person already paid — show already-paid screen without confetti
+          setPageState("already_paid");
+        } else {
+          setPageState("success");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -62,13 +72,11 @@ export default function ZaplatitPage({ params }: PaymentPageProps) {
   };
 
   const handleClose = () => {
-    // Attempt to close the window
     window.close();
-    // Fallback if window.close() is blocked (which it often is if not opened by script)
     alert("Nyní můžete toto okno zavřít.");
   };
 
-  if (loading) {
+  if (pageState === "loading") {
     return (
       <Center h="100vh">
         <Loader size="xl" />
@@ -76,12 +84,31 @@ export default function ZaplatitPage({ params }: PaymentPageProps) {
     );
   }
 
-  if (error) {
+  if (pageState === "error") {
     return (
       <Center h="100vh" px="xl">
         <Text ta="center" fw={600}>
           Omlouváme se, tato platba nebyla nalezena nebo již vypršela.
         </Text>
+      </Center>
+    );
+  }
+
+  if (pageState === "cancelled") {
+    return (
+      <Center h="100vh" px="xl">
+        <Stack align="center" gap="md">
+          <IoClose size={60} color="#868E96" />
+          <Text ta="center" fw={700} size="xl">
+            Platba zrušena
+          </Text>
+          <Text ta="center" c="dimmed" size="sm">
+            Tato platební výzva byla zrušena nebo odmítnuta.
+          </Text>
+          <Button variant="outline" color="gray" mt="md" onClick={handleClose}>
+            Zavřít
+          </Button>
+        </Stack>
       </Center>
     );
   }
@@ -110,12 +137,17 @@ export default function ZaplatitPage({ params }: PaymentPageProps) {
 
           {/* Status Section */}
           <Stack align="center" gap={12}>
-            {success ? (
+            {pageState === "success" || pageState === "already_paid" ? (
               <>
                 <FaRegCircleCheck size={60} color="#237DC5" />
                 <Text size="lg" fw={500} c="#8E8E93">
-                  Hotovo
+                  {pageState === "already_paid" ? "Již zaplaceno" : "Hotovo"}
                 </Text>
+                {pageState === "already_paid" && (
+                  <Text size="sm" c="dimmed" ta="center" px="xl">
+                    Tato platba již byla uhrazena.
+                  </Text>
+                )}
               </>
             ) : (
               <Text size="lg" fw={500} c="#8E8E93">
@@ -134,7 +166,7 @@ export default function ZaplatitPage({ params }: PaymentPageProps) {
           borderTop: "1px solid #EFEFEF",
         }}
       >
-        {success ? (
+        {pageState === "success" || pageState === "already_paid" ? (
           <Button
             fullWidth
             radius="lg"

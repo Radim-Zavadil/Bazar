@@ -21,6 +21,8 @@ export const messages = sqliteTable("messages", {
   senderName: text("sender_name").notNull(),
   content: text("content").notNull(),
   type: text("type").notNull().default("text"),
+  // Payment status lifecycle: pending | completed | cancelled | declined | expired
+  paymentStatus: text("payment_status").notNull().default("pending"),
   createdAt: text("created_at").notNull().default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
 });
 
@@ -38,7 +40,7 @@ export const payments = sqliteTable("payments", {
   sellerName: text("seller_name").notNull(),
   amount: integer("amount").notNull(),
   method: text("method").notNull(), // 'card' or 'qr'
-  status: text("status").notNull().default("completed"), // 'pending', 'completed', 'failed'
+  status: text("status").notNull().default("completed"), // 'pending', 'completed', 'cancelled', 'declined', 'expired'
   sessionId: text("session_id").unique(),
   createdAt: text("created_at").notNull().default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
 });
