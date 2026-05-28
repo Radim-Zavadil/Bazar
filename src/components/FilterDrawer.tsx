@@ -82,7 +82,8 @@ export function FilterDrawer({ isOpen, onClose }: FilterDrawerProps) {
         top: NAV_HEIGHT,
         left: 0,
         bottom: 0,
-        width: 380,
+        width: "100%",
+        maxWidth: 380,
         zIndex: 200,
       }}
     >

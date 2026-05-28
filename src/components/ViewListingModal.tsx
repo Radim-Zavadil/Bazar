@@ -199,7 +199,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
         <Image src="/logo.png" alt="Logo" h={36} w="auto" fit="contain" />
       </Group>
 
-      <Flex h="100vh" wrap="nowrap">
+      <Flex h={{ base: "auto", md: "100vh" }} direction={{ base: "column", md: "row" }} wrap="nowrap">
         {/* Left Column - Product Image */}
         <Flex
           flex={1}
@@ -210,6 +210,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
           style={{
             position: "relative",
             height: "100%",
+            minHeight: 400,
             paddingBottom: "5%", // Slightly above center
             overflow: "hidden",
           }}
@@ -272,6 +273,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                 background: dragOver ? "#111" : "#080808",
                 width: "80%",
                 height: "70%",
+                minHeight: 300,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -302,7 +304,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
 
         {/* Right Column - Product Details */}
         <Box
-          w={480}
+          w={{ base: "100%", md: 480 }}
           bg="#fff"
           style={{
             height: "100%",

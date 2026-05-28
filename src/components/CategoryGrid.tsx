@@ -123,7 +123,7 @@ function CategoryCard({ category }: CategoryCardProps) {
 
 export function CategoryGrid() {
   return (
-    <SimpleGrid cols={3} spacing={16} w="100%">
+    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={16} w="100%">
       {CATEGORIES.map((category) => (
         <motion.div
           key={category.title}

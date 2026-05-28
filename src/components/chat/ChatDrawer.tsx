@@ -27,7 +27,7 @@ export function ChatDrawer({ isOpen, onClose, currentUser, isLoggedIn, initialCh
   if (!isOpen) return null;
 
   // When expanded: cover the full viewport below the nav
-  // When compact: fixed right panel 380px wide
+  // When compact: fixed right panel 380px wide (or full width on mobile)
   const style = isExpanded
     ? {
         position: "fixed" as const,
@@ -42,7 +42,8 @@ export function ChatDrawer({ isOpen, onClose, currentUser, isLoggedIn, initialCh
         top: NAV_HEIGHT,
         right: 0,
         bottom: 0,
-        width: 380,
+        width: "100%",
+        maxWidth: 380,
         zIndex: 200,
       };
 
