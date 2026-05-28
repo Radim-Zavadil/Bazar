@@ -130,7 +130,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
       onClose={handleClose}
       withCloseButton={false}
       centered
-      size={{ base: "95%", sm: 540 }}
+      size={540}
       radius={15}
       overlayProps={{ blur: 4, backgroundOpacity: 0.45 }}
       styles={{
@@ -139,6 +139,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
           border: "1px solid #D5D5D5",
           borderRadius: 15,
           padding: 0,
+          width: "95%",
         },
         body: { padding: 0 },
       }}
