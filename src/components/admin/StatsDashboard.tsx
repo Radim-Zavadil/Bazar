@@ -60,6 +60,7 @@ export function StatsDashboard({ stats }: Props) {
                   tickLine="none"
                   gridAxis="y"
                   withDots={false}
+                  yAxisProps={{ tickFormatter: (v: number) => (Number.isInteger(v) ? String(v) : "") }}
                 />
               </Stack>
             </Paper>
@@ -77,29 +78,15 @@ export function StatsDashboard({ stats }: Props) {
                 </Text>
               </Stack>
 
-              {/* Prodejci & Kupující — no border */}
-              <Group grow align="flex-start">
-                <Stack gap={2}>
-                  <Text fw={500} size="2rem" lh={1} c="dark.8">
-                    {Number(stats.sellerStats.sellers).toLocaleString("cs-CZ")}
-                  </Text>
-                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
-                    Prodejci
-                  </Text>
-                </Stack>
-                <Stack gap={2}>
-                  <Text fw={500} size="2rem" lh={1} c="dark.8">
-                    {Number(stats.sellerStats.buyers).toLocaleString("cs-CZ")}
-                  </Text>
-                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
-                    Kupující
-                  </Text>
-                </Stack>
-              </Group>
-
-              <Text size="xs" c="dimmed">
-                Kupující jsou uživatelé, kteří zatím nevytvořili žádný inzerát.
-              </Text>
+              {/* Prodejci — no border */}
+              <Stack gap={2}>
+                <Text fw={500} size="2.6rem" lh={1} c="dark.8">
+                  {Number(stats.sellerStats.sellers).toLocaleString("cs-CZ")}
+                </Text>
+                <Text c="dimmed" size="xs" tt="uppercase" fw={700} style={{ letterSpacing: "0.12em" }}>
+                  Prodejci
+                </Text>
+              </Stack>
             </Stack>
           </Grid.Col>
         </Grid>
@@ -121,6 +108,7 @@ export function StatsDashboard({ stats }: Props) {
                 tickLine="none"
                 gridAxis="y"
                 withDots={false}
+                yAxisProps={{ tickFormatter: (v: number) => (Number.isInteger(v) ? String(v) : "") }}
               />
             </Stack>
           </Paper>
@@ -143,6 +131,7 @@ export function StatsDashboard({ stats }: Props) {
                 tickLine="none"
                 gridAxis="y"
                 barProps={{ maxBarSize: 24, radius: 3 }}
+                yAxisProps={{ tickFormatter: (v: number) => (Number.isInteger(v) ? String(v) : "") }}
               />
             </Stack>
           </Paper>
