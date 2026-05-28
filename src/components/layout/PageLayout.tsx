@@ -3,7 +3,7 @@
 import { ActionIcon, Anchor, AppShell, Box, Container, Group, Stack, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import type { PropsWithChildren } from "react";
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import { IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoFilter, IoFilterOutline } from "react-icons/io5";
 import { MdAdd } from "react-icons/md";
@@ -33,13 +33,18 @@ export function useOpenChat() {
 export function PageLayout({ children }: PropsWithChildren) {
   const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
   const { data: session } = useSession();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [chatOpen, setChatOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [pendingChatId, setPendingChatId] = useState<number | null>(null);
 
-  const isLoggedIn = !!session?.user;
-  const currentUser = session?.user?.name ?? "";
+  const isLoggedIn = mounted ? !!session?.user : false;
+  const currentUser = mounted ? (session?.user?.name ?? "") : "";
 
   // Called by ListingCard after chat is created
   const openChat = useCallback((chatId: number) => {

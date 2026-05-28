@@ -4,7 +4,7 @@ import { Badge, Box, Card, Group, Stack, Text, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import { TbArrowUpRight } from "react-icons/tb";
 import { useOpenChat } from "@/components/layout/PageLayout";
@@ -49,10 +49,17 @@ export function ListingCard({ listing }: ListingCardProps) {
   const [opened, { open, close }] = useDisclosure(false);
   const [chatLoading, setChatLoading] = useState(false);
   const { data: session } = useSession();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { openChat } = useOpenChat();
   const isFree = listing.price === null || listing.price === 0;
 
-  const isOwnListing = !!session?.user && session.user.name === listing.sellerName;
+  const hasUser = mounted ? !!session?.user : false;
+  const isOwnListing = mounted && !!session?.user && session.user.name === listing.sellerName;
 
   async function handleChatClick(e: React.MouseEvent) {
     e.stopPropagation(); // don't open ViewListingModal
@@ -80,7 +87,7 @@ export function ListingCard({ listing }: ListingCardProps) {
   }
 
   let chatTooltip = "Napsat prodávajícímu";
-  if (!session?.user) chatTooltip = "Přihlaste se pro zahájení chatu";
+  if (!hasUser) chatTooltip = "Přihlaste se pro zahájení chatu";
   if (isOwnListing) chatTooltip = "Toto je váš inzerát";
 
   return (
@@ -168,12 +175,12 @@ export function ListingCard({ listing }: ListingCardProps) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    cursor: session?.user ? "pointer" : "default",
-                    opacity: session?.user ? 1 : 0.45,
+                    cursor: hasUser ? "pointer" : "default",
+                    opacity: hasUser ? 1 : 0.45,
                     transition: "background 0.15s",
                   }}
                   onMouseEnter={(e) => {
-                    if (session?.user) (e.currentTarget as HTMLElement).style.background = "#E0E8FF";
+                    if (hasUser) (e.currentTarget as HTMLElement).style.background = "#E0E8FF";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLElement).style.background = "#F5F5F5";
