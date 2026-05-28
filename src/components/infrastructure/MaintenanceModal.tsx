@@ -1,9 +1,9 @@
 "use client";
 
 import { Loader, Modal, noop, Stack, Text, Title } from "@mantine/core";
-import { Construction } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { MdConstruction } from "react-icons/md";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
 
 interface MaintenanceModalProps {
@@ -33,7 +33,7 @@ export function MaintenanceModal({ children }: MaintenanceModalProps) {
         onClose={noop}
       >
         <Stack align="center" gap="md" py="xl">
-          <Construction size={56} />
+          <MdConstruction size={56} />
 
           <Stack align="center" gap="md">
             <Title order={3} ta="center">

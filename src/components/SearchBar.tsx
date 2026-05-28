@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { MdSearch } from "react-icons/md";
 
 export function SearchBar() {
   const [query, setQuery] = useState("");
@@ -35,7 +35,7 @@ export function SearchBar() {
         width: "100%",
       }}
     >
-      <Search size={20} color="#919191" strokeWidth={2} className="shrink-0" />
+      <MdSearch size={20} color="#919191" className="shrink-0" />
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}

@@ -2,11 +2,11 @@
 
 import { ActionIcon, Anchor, AppShell, Box, Container, Group, Stack, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { Plus } from "lucide-react";
 import type { PropsWithChildren } from "react";
 import { createContext, useCallback, useContext, useState } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import { IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoFilter, IoFilterOutline } from "react-icons/io5";
+import { MdAdd } from "react-icons/md";
 import { AuthNav } from "@/components/AuthNav";
 import { CreateListingModal } from "@/components/CreateListingModal";
 import { ChatDrawer } from "@/components/chat/ChatDrawer";
@@ -77,7 +77,7 @@ export function PageLayout({ children }: PropsWithChildren) {
                       cursor: isLoggedIn ? "pointer" : "default",
                     }}
                   >
-                    <Plus size={20} color={isLoggedIn ? "#333" : "#999"} />
+                    <MdAdd size={20} color={isLoggedIn ? "#333" : "#999"} />
                   </ActionIcon>
                 </Tooltip>
 

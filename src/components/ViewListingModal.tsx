@@ -20,8 +20,8 @@ import {
   Transition,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { Pencil, Trash2, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { MdClose, MdDeleteOutline, MdEdit, MdUpload } from "react-icons/md";
 import { deleteListing, updateListing } from "@/actions/listing.actions";
 import { useOpenChat } from "@/components/layout/PageLayout";
 import { useSession } from "@/lib/auth-client";
@@ -194,7 +194,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
             boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
           }}
         >
-          <X size={20} color="#000" />
+          <MdClose size={20} color="#000" />
         </ActionIcon>
         <Image src="/logo.png" alt="Logo" h={36} w="auto" fit="contain" />
       </Group>
@@ -292,7 +292,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                 <Image src={previewUrl} alt="Náhled" fit="contain" style={{ width: "100%", height: "100%" }} />
               ) : (
                 <Stack align="center" gap={12} c="#888">
-                  <Upload size={40} />
+                  <MdUpload size={40} />
                   <Text fw={500}>Přetáhněte obrázek nebo klikněte</Text>
                 </Stack>
               )}
@@ -334,7 +334,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                         },
                       }}
                     >
-                      <Pencil size={20} />
+                      <MdEdit size={20} />
                     </ActionIcon>
                   )}
                   {canDelete && (
@@ -345,7 +345,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
                       size="lg"
                       radius="md"
                     >
-                      <Trash2 size={20} />
+                      <MdDeleteOutline size={20} />
                     </ActionIcon>
                   )}
                 </Group>
