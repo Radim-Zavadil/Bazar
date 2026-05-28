@@ -1,4 +1,4 @@
-import { Container, Group, Stack, Text } from "@mantine/core";
+import { Container, Flex, Group, Text } from "@mantine/core";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
@@ -24,15 +24,15 @@ export default async function Page(_: PageProps<"/[locale]">) {
   const listingsCount = allListings.length;
 
   return (
-    <Container size="md" py={40}>
-      <Stack align="center" gap={40}>
+    <Container size="md" py={{ base: 20, sm: 40 }}>
+      <Flex direction="column" align="center" gap={{ base: 24, sm: 40 }}>
         <MotionWrapper>
-          <Stack align="center" gap={16}>
+          <Flex direction="column" align="center" gap={{ base: 12, sm: 16 }}>
             <Image src="/blogic-logo.png" alt="Blogic Logo" width={160} height={50} style={{ objectFit: "contain" }} />
-            <Text c="#434343" fw={500} size="lg">
+            <Text c="#434343" fw={500} size="lg" ta="center">
               Kde věci nacházejí nový domov
             </Text>
-          </Stack>
+          </Flex>
         </MotionWrapper>
 
         <SearchBar />
@@ -44,12 +44,12 @@ export default async function Page(_: PageProps<"/[locale]">) {
             <Text c="#505050" fw={500} size="xl">
               {listingsCount}
             </Text>
-            <Text c="#7B7B7B" fw={400} size="xl">
-              inzerátů
+            <Text c="#808080" size="lg">
+              aktivních inzerátů
             </Text>
           </Group>
         </MotionWrapper>
-      </Stack>
+      </Flex>
     </Container>
   );
 }

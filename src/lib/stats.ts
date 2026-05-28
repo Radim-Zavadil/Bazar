@@ -6,14 +6,16 @@ import { listings } from "@/db/schemas/listing.schema";
 
 export async function getStats() {
   // 1. User Signups over time (last 30 days)
+  const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
   const userSignups = await db
     .select({
-      date: sql<string>`strftime('%Y-%m-%d', datetime(created_at / 1000, 'unixepoch'))`,
+      date: sql<string>`strftime('%Y-%m-%d', datetime(created_at, 'unixepoch'))`,
       count: count(),
     })
     .from(user)
-    .groupBy(sql`strftime('%Y-%m-%d', datetime(created_at / 1000, 'unixepoch'))`)
-    .orderBy(sql`strftime('%Y-%m-%d', datetime(created_at / 1000, 'unixepoch'))`);
+    .where(sql`created_at >= ${thirtyDaysAgo}`)
+    .groupBy(sql`strftime('%Y-%m-%d', datetime(created_at, 'unixepoch'))`)
+    .orderBy(sql`strftime('%Y-%m-%d', datetime(created_at, 'unixepoch'))`);
 
   // 2. Sellers vs Buyers
   const totalUsersResult = await db.select({ count: count() }).from(user);

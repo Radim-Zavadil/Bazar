@@ -139,6 +139,7 @@ export function CreateListingModal({ opened, onClose }: Props) {
           border: "1px solid #D5D5D5",
           borderRadius: 15,
           padding: 0,
+          width: "95%",
         },
         body: { padding: 0 },
       }}
