@@ -3,31 +3,45 @@
 import { BarChart, LineChart } from "@mantine/charts";
 import { Box, Container, Grid, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 
+type UserSignup = { date: string; count: number };
+type ListingPoint = { date: string; count: number };
+type CategoryPoint = { category: string; count: number };
+type PaymentMethod = { method: string; count: number };
+type PaymentEntry = { name: string; value: number; color: string };
+
+type Stats = {
+  userSignups: UserSignup[];
+  sellerStats: { total: number; sellers: number; buyers: number };
+  listingsOverTime: ListingPoint[];
+  categoryBreakdown: CategoryPoint[];
+  paymentMethods: PaymentMethod[];
+};
+
 type Props = {
-  stats: any;
+  stats: Stats;
 };
 
 const CAT_COLORS = ["#4BC34D", "#24ACD0", "#7035DE", "#C4372B", "#CC9E3D"];
 const PAYMENT_COLORS = ["#4BC34D", "#24ACD0"];
 
 export function StatsDashboard({ stats }: Props) {
-  const signupData = stats.userSignups.map((s: any) => ({
+  const signupData = stats.userSignups.map((s: UserSignup) => ({
     date: s.date,
     Uživatelé: s.count,
   }));
 
-  const listingsData = stats.listingsOverTime.map((l: any) => ({
+  const listingsData = stats.listingsOverTime.map((l: ListingPoint) => ({
     date: l.date,
     Inzeráty: l.count,
   }));
 
-  const paymentData = stats.paymentMethods.map((p: any, index: number) => ({
+  const paymentData = stats.paymentMethods.map((p: PaymentMethod, index: number) => ({
     name: p.method === "qr" ? "QR Platba" : "Bankovní převod",
     value: p.count,
     color: PAYMENT_COLORS[index] ?? "#6E8596",
   }));
 
-  const totalPayments = paymentData.reduce((s: number, p: any) => s + p.value, 0);
+  const totalPayments = paymentData.reduce((s: number, p: PaymentEntry) => s + p.value, 0);
 
   const noBorderPaper: React.CSSProperties = {
     background: "transparent",
@@ -121,7 +135,7 @@ export function StatsDashboard({ stats }: Props) {
               </Text>
               <BarChart
                 h={200}
-                data={stats.categoryBreakdown.map((c: any, i: number) => ({
+                data={stats.categoryBreakdown.map((c: CategoryPoint, i: number) => ({
                   category: c.category,
                   Počet: c.count,
                   color: CAT_COLORS[i % CAT_COLORS.length],
@@ -145,7 +159,7 @@ export function StatsDashboard({ stats }: Props) {
 
               {/* colour strip */}
               <Group gap={0} style={{ borderRadius: 3, overflow: "hidden", height: 14 }}>
-                {paymentData.map((p: any) => (
+                {paymentData.map((p: PaymentEntry) => (
                   <Box
                     key={p.name}
                     style={{
@@ -158,7 +172,7 @@ export function StatsDashboard({ stats }: Props) {
               </Group>
 
               <Stack gap={10} mt={4}>
-                {paymentData.map((p: any) => (
+                {paymentData.map((p: PaymentEntry) => (
                   <Group key={p.name} justify="space-between">
                     <Group gap={7}>
                       <Box

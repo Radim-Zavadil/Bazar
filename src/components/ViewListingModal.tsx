@@ -50,7 +50,7 @@ export function ViewListingModal({ opened, onClose, listing }: Props) {
   const { openChat } = useOpenChat();
 
   const isOwner = session?.user && listing.userId === session.user.id;
-  const isAdmin = (session?.user as any)?.role === "Admin";
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "Admin";
   const canDelete = isOwner || isAdmin;
 
   const form = useForm({

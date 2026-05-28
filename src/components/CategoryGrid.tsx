@@ -103,7 +103,7 @@ function CategoryCard({ category }: CategoryCardProps) {
       />
 
       {/* Modern Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/15 transition-opacity duration-300 group-hover:opacity-90" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/35 to-black/15 transition-opacity duration-300 group-hover:opacity-90" />
 
       {/* Text Container with smooth premium translate transition */}
       <Text
